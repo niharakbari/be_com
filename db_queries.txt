@@ -1,0 +1,213 @@
+CREATE TABLE users (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE categories (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+
+    name VARCHAR(100) NOT NULL,
+
+    type ENUM('income', 'expense') NOT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_categories_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    UNIQUE KEY unique_user_category (user_id, name, type)
+);
+
+
+CREATE TABLE payment_modes (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    name VARCHAR(50) NOT NULL UNIQUE,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT INTO payment_modes (name)
+VALUES
+    ('Cash'),
+    ('UPI'),
+    ('Debit Card'),
+    ('Credit Card'),
+    ('Bank Transfer'),
+    ('Other');
+
+
+
+CREATE TABLE transactions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    user_id BIGINT UNSIGNED NOT NULL,
+    category_id BIGINT UNSIGNED NOT NULL,
+    payment_mode_id BIGINT UNSIGNED NOT NULL,
+
+    amount DECIMAL(15,2) NOT NULL,
+
+    transaction_date DATETIME NOT NULL,
+
+    note VARCHAR(500) NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_transactions_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_transactions_category
+        FOREIGN KEY (category_id)
+        REFERENCES categories(id)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT fk_transactions_payment_mode
+        FOREIGN KEY (payment_mode_id)
+        REFERENCES payment_modes(id)
+        ON DELETE RESTRICT,
+
+    INDEX idx_transactions_user_date (user_id, transaction_date),
+
+    CONSTRAINT chk_transaction_amount
+        CHECK (amount > 0)
+);
+
+
+
+CREATE TABLE recurring_transactions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    user_id BIGINT UNSIGNED NOT NULL,
+    category_id BIGINT UNSIGNED NOT NULL,
+    payment_mode_id BIGINT UNSIGNED NOT NULL,
+
+    amount DECIMAL(15,2) NOT NULL,
+
+    frequency ENUM(
+        'daily',
+        'weekly',
+        'monthly',
+        'yearly'
+    ) NOT NULL,
+
+    start_date DATE NOT NULL,
+
+    next_occurrence_date DATE NOT NULL,
+
+    note VARCHAR(500) NULL,
+
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_recurring_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_recurring_category
+        FOREIGN KEY (category_id)
+        REFERENCES categories(id)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT fk_recurring_payment_mode
+        FOREIGN KEY (payment_mode_id)
+        REFERENCES payment_modes(id)
+        ON DELETE RESTRICT,
+
+    INDEX idx_recurring_next_date
+        (user_id, is_active, next_occurrence_date),
+
+    CONSTRAINT chk_recurring_amount
+        CHECK (amount > 0)
+);
+
+
+CREATE TABLE recurring_transaction_occurrences (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    recurring_transaction_id BIGINT UNSIGNED NOT NULL,
+
+    transaction_id BIGINT UNSIGNED NOT NULL,
+
+    occurrence_date DATE NOT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_occurrence_recurring
+        FOREIGN KEY (recurring_transaction_id)
+        REFERENCES recurring_transactions(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_occurrence_transaction
+        FOREIGN KEY (transaction_id)
+        REFERENCES transactions(id)
+        ON DELETE CASCADE,
+
+    UNIQUE KEY unique_recurring_occurrence
+        (recurring_transaction_id, occurrence_date),
+
+    UNIQUE KEY unique_occurrence_transaction
+        (transaction_id)
+);
+
+
+
+CREATE TABLE budgets (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    user_id BIGINT UNSIGNED NOT NULL,
+
+    category_id BIGINT UNSIGNED NULL,
+
+    amount DECIMAL(15,2) NOT NULL,
+
+    budget_month TINYINT UNSIGNED NOT NULL,
+
+    budget_year SMALLINT UNSIGNED NOT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_budgets_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_budgets_category
+        FOREIGN KEY (category_id)
+        REFERENCES categories(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT chk_budget_amount
+        CHECK (amount > 0),
+
+    CONSTRAINT chk_budget_month
+        CHECK (budget_month BETWEEN 1 AND 12),
+
+    CONSTRAINT chk_budget_year
+        CHECK (budget_year BETWEEN 2000 AND 2100),
+
+    UNIQUE KEY unique_category_budget
+        (user_id, category_id, budget_month, budget_year)
+);
