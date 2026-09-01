@@ -23,7 +23,6 @@ const protect = asyncHandler(async (req, res, next) => {
         }
 
         req.user = user;
-        console.log(`user with id ${req.user.id}`);
 
         next();
     } catch(err) {

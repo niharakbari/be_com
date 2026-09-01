@@ -10,6 +10,7 @@ const globalErrorHandler = require("./middlewares/globalErrorHandler");
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const catageryRoutes = require('./routes/categoryRoutes');
+const paymentModeRoutes = require("./routes/paymentModeRoutes");
 
 const app = express();
 
@@ -26,7 +27,9 @@ app.use("/auth", authRoutes);
 
 app.use("/users", userRoutes);
 
-app.use("/catagories", catageryRoutes)
+app.use("/catagories", catageryRoutes);
+
+app.use("/api/payment-modes", paymentModeRoutes);
 
 app.use(globalErrorHandler);
 
