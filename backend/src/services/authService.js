@@ -3,6 +3,8 @@ const db = require("../config/database");
 const userModel = require('../models/userModel');
 const otpModel = require("../models/otpModel");
 
+const mailService = require('../services/mailService');
+
 const bcrypt = require("bcrypt");
 
 const { generateOTP } = require("../utils/otp");
@@ -58,6 +60,14 @@ const register = async (userData) => {
 
 
     const otp = generateOTP();
+
+    console.log("`otp: ${otp");
+
+    await mailService.sendRegistrationOtpMail(
+        otp,
+        // userData.email
+    );
+
     const otp_hash = await bcrypt.hash(
         otp,
         config.bcryptSaltRounds
@@ -464,7 +474,8 @@ const forgotPassword = async (email) => {
     }
 
     const otp = generateOTP();
-    console.log("OTP generated");
+    
+    await mailService.sendForgotPasswordMail(otp);
 
     const otp_hash = await bcrypt.hash(
         otp,
@@ -480,7 +491,6 @@ const forgotPassword = async (email) => {
         "password_reset"
     );
 
-    console.log("service: creating new OTP");
     await otpModel.createOTP({
         user_id: user.id,
         email: user.email,
@@ -492,11 +502,7 @@ const forgotPassword = async (email) => {
         expires_at
     });
 
-    console.log(
-        `Password reset OTP for ${email}: ${otp}`
-    );
-
-    return {
+     return {
         message:
             "If an account exists with this email, an OTP has been sent"
     };

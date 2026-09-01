@@ -181,7 +181,6 @@ const forgotPassword = async (
     next
 ) => {
 
-    console.log("controller reached");
     try {
 
         const result = await authService.forgotPassword(

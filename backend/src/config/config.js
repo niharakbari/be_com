@@ -37,6 +37,10 @@ module.exports = {
 
     bcryptSaltRounds : Number(bcryptSaltRounds),
 
-    openLibraryURL : openLibraryBaseURL
+    openLibraryURL : openLibraryBaseURL,
+
+    resend : {
+        api: process.env.RESEND_API_KEY
+    }
 
 }
