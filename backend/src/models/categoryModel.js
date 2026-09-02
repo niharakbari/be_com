@@ -78,6 +78,25 @@ const getCategories = async (
 };
 
 
+const findCategoryByIdAndUser = async (
+    categoryId,
+    userId,
+    connection = db
+) => {
+    const [result] = await connection.query(
+        `
+        SELECT id, name, type
+        FROM categories
+        WHERE id = ?
+        AND user_id = ?
+        `,
+        [categoryId, userId]
+    );
+
+    return result[0];
+};
+
+
 const updateCategory = async (
     categoryId,
     userId,
@@ -122,6 +141,7 @@ module.exports = {
     findCategoryById,
     createCategory,
     getCategories,
+    findCategoryByIdAndUser,
     updateCategory,
     deleteCategory
 };
