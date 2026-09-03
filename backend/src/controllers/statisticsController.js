@@ -45,6 +45,41 @@ const getStatistics = async (
 };
 
 
+const getBreakdownStatistics = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const userId =
+            req.user.id;
+
+
+        const statistics =
+            await statisticsService
+                .getBreakdownStatistics(
+                    userId,
+                    req.query
+                );
+
+
+        return res.status(200).json({
+            success: true,
+            data: statistics
+        });
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
+
+
 module.exports = {
-    getStatistics
+    getStatistics,
+    getBreakdownStatistics
 };

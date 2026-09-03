@@ -15,6 +15,13 @@ const router = express.Router();
 
 
 router.get(
+    "/breakdown",
+    protect,
+    statisticsController.getBreakdownStatistics
+);
+
+
+router.get(
     "/",
     protect,
     statisticsController.getStatistics

@@ -13,6 +13,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // Optional: Interceptor to handle 401s and refresh token automatically
 api.interceptors.response.use(
   (response) => response,
@@ -26,22 +40,43 @@ api.interceptors.response.use(
       !originalRequest.url.includes('/auth/login') &&
       !originalRequest.url.includes('/auth/refresh-token')
     ) {
+      if (isRefreshing) {
+        return new Promise(function(resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        }).then(token => {
+          originalRequest.headers.Authorization = 'Bearer ' + token;
+          return api(originalRequest);
+        }).catch(err => {
+          return Promise.reject(err);
+        });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
+
       try {
         const res = await axios.post(`${api.defaults.baseURL}/auth/refresh-token`, {}, { withCredentials: true });
         
-        if (res.data?.data?.accessToken) {
-          localStorage.setItem('accessToken', res.data.data.accessToken);
-          originalRequest.headers.Authorization = `Bearer ${res.data.data.accessToken}`;
+        const newToken = res.data?.data?.accessToken;
+        
+        if (newToken) {
+          localStorage.setItem('accessToken', newToken);
+          api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          
+          processQueue(null, newToken);
           return api(originalRequest);
         }
       } catch (refreshError) {
+        processQueue(refreshError, null);
         // Refresh token failed/expired
         localStorage.removeItem('accessToken');
         localStorage.removeItem('user');
         // Let React Router's <ProtectedRoute> handle the redirect gracefully
         // by returning Promise.reject, which sets user to null in AuthContext
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
     return Promise.reject(error);
