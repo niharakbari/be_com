@@ -8,7 +8,7 @@ export default function MainLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface)] flex overflow-hidden relative">
+    <div className="min-h-screen bg-page flex overflow-hidden relative text-text-main">
       {/* Mobile Sidebar Overlay */}
       {mobileMenuOpen && (
         <div 
@@ -26,7 +26,7 @@ export default function MainLayout() {
         <div className="flex items-center md:hidden px-6 pt-6">
           <button 
             onClick={() => setMobileMenuOpen(true)}
-            className="p-2 bg-white rounded-full shadow-sm"
+            className="p-2 bg-surface text-text-main rounded-full shadow-sm"
           >
             <Menu size={24} />
           </button>

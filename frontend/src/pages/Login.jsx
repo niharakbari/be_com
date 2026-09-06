@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import { authApi } from '../api/authApi';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,11 +10,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { setIsAuthLoading } = useOutletContext();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    setIsAuthLoading(true);
     
     try {
       const res = await authApi.login({ identifier, password });
@@ -24,13 +26,14 @@ export default function Login() {
       setError(err.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
+      setIsAuthLoading(false);
     }
   };
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-center mb-2">Welcome Back</h1>
-      <p className="text-gray-500 text-center mb-8">Enter your details to access your account.</p>
+      <h1 className="text-2xl font-bold text-center mb-2 text-text-main">Welcome Back</h1>
+      <p className="text-text-muted text-center mb-8">Please log in to your account.</p>
       
       {error && <div className="bg-red-50 text-red-500 p-3 rounded-xl mb-4 text-sm">{error}</div>}
       
@@ -50,7 +53,7 @@ export default function Login() {
           <label className="block text-sm font-medium mb-1">Password</label>
           <input
             type="password"
-            className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            className="w-full bg-page text-text-main placeholder-text-muted border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             placeholder="••••••••"
             value={password}
             onChange={e => setPassword(e.target.value)}
@@ -65,13 +68,13 @@ export default function Login() {
         <button 
           type="submit" 
           disabled={loading}
-          className="w-full bg-black text-white rounded-full py-4 font-semibold hover:bg-gray-900 disabled:opacity-70 transition-colors"
+          className="w-full bg-[var(--color-primary)] text-black rounded-full py-4 font-semibold hover:bg-[var(--color-primary-dark)] disabled:opacity-70 transition-colors"
         >
           {loading ? 'Logging in...' : 'Log In'}
         </button>
       </form>
       
-      <p className="text-center mt-6 text-sm">
+      <p className="text-center mt-6 text-sm text-text-main">
         Don't have an account? <Link to="/register" className="font-semibold hover:underline">Sign up</Link>
       </p>
     </div>

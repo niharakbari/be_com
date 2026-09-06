@@ -13,7 +13,7 @@ export default function Sidebar({ onClose }) {
   ];
 
   return (
-    <div className="w-[240px] shrink-0 bg-[var(--color-primary)] rounded-[40px] p-6 flex flex-col h-[calc(100vh-32px)] my-4 ml-4">
+    <div className="w-[240px] shrink-0 bg-sidebar rounded-[40px] p-6 flex flex-col h-[calc(100vh-32px)] my-4 ml-4">
       {/* New Logo */}
       <div className="flex items-center justify-center px-4 mb-16 mt-4">
         <span className="font-bold text-2xl tracking-tight">Finance.</span>
@@ -30,8 +30,8 @@ export default function Sidebar({ onClose }) {
               onClick={onClose}
               className={`flex items-center gap-4 px-6 py-4 rounded-[100px] transition-all duration-300 font-semibold ${
                 isActive
-                  ? 'bg-black text-white' 
-                  : 'text-black hover:bg-black/5'
+                  ? 'bg-btn-primary text-btn-text' 
+                  : 'text-text-main hover:bg-text-main/5'
               }`}
             >
               <item.icon size={20} strokeWidth={2.5} />

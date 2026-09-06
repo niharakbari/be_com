@@ -1,16 +1,66 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #B8C9F7;
-  --color-primary-dark: #a1b6f0;
-  --color-surface: #F5F7FA;
-  --color-text-main: #1A1A1A;
+  --color-page: var(--bg-page);
+  --color-surface: var(--bg-surface);
+  --color-sidebar: var(--bg-sidebar);
+  
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverted: var(--text-inverted);
+  
+  --color-border-main: var(--border-main);
+  
+  --color-btn-primary: var(--btn-primary);
+  --color-btn-primary-hover: var(--btn-primary-hover);
+  --color-btn-text: var(--btn-text);
   
   --font-sans: 'Plus Jakarta Sans', sans-serif;
 }
 
+:root {
+  --bg-page: #F5F7FA;
+  --bg-surface: #FFFFFF;
+  --bg-sidebar: #B8C9F7;
+  
+  --color-primary: #B8C9F7;
+  --color-primary-dark: #a1b6f0;
+  
+  --text-main: #1A1A1A;
+  --text-muted: #6B7280;
+  --text-inverted: #FFFFFF;
+  
+  --border-main: #F3F4F6;
+  
+  --btn-primary: #1A1A1A;
+  --btn-primary-hover: #111827;
+  --btn-text: #FFFFFF;
+}
+
+.dark {
+  --bg-page: #121212;
+  --bg-surface: #1E1E1E;
+  --bg-sidebar: #1A1A1A;
+  
+  --color-primary: #8CA9F9;
+  --color-primary-dark: #7b99ed;
+  
+  --text-main: #F9FAFB;
+  --text-muted: #9CA3AF;
+  --text-inverted: #1A1A1A;
+  
+  --border-main: #2C2C2C;
+  
+  --btn-primary: #F3F4F6;
+  --btn-primary-hover: #E5E7EB;
+  --btn-text: #1A1A1A;
+}
+
 body {
-  background-color: var(--color-surface);
+  background-color: var(--color-page);
   color: var(--color-text-main);
   font-family: var(--font-sans);
 }

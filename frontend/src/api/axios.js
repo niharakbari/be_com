@@ -72,8 +72,7 @@ api.interceptors.response.use(
         // Refresh token failed/expired
         localStorage.removeItem('accessToken');
         localStorage.removeItem('user');
-        // Let React Router's <ProtectedRoute> handle the redirect gracefully
-        // by returning Promise.reject, which sets user to null in AuthContext
+        window.dispatchEvent(new Event('auth:unauthorized'));
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

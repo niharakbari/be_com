@@ -19,27 +19,27 @@ export default function CategorySelect({ categories, value, onChange, onCreate, 
   return (
     <div className={`relative ${className || ''}`}>
       <div 
-        className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 cursor-pointer flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] h-[46px]"
+        className="w-full bg-page border-none rounded-2xl px-4 py-3 cursor-pointer flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] h-[46px]"
         tabIndex="0"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className={value ? "text-black font-medium text-sm md:text-base truncate" : "text-gray-500 text-sm md:text-base"}>
+        <span className={value ? "text-text-main font-medium text-sm md:text-base truncate" : "text-text-muted text-sm md:text-base"}>
           {value ? selectedCategory?.name || 'Select...' : 'Select...'}
         </span>
-        <span className="text-gray-400 text-xs ml-2">▼</span>
+        <span className="text-text-muted text-xs ml-2">▼</span>
       </div>
       
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)}></div>
-          <div className="absolute top-[100%] left-0 w-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden flex flex-col max-h-72">
+          <div className="absolute top-[100%] left-0 w-full mt-2 bg-surface rounded-2xl shadow-xl border border-border-main z-50 overflow-hidden flex flex-col max-h-72 text-text-main">
             {!isCreating ? (
               <>
-                <div className="p-3 border-b border-gray-50">
+                <div className="p-3 border-b border-border-main">
                   <input
                     type="text"
                     placeholder="Search..."
-                    className="w-full bg-gray-50 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                    className="w-full bg-page text-text-main placeholder-text-muted rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onClick={(e) => e.stopPropagation()}
@@ -53,7 +53,7 @@ export default function CategorySelect({ categories, value, onChange, onCreate, 
                       .map(c => (
                         <div 
                           key={c.id}
-                          className={`px-4 py-3 hover:bg-[var(--color-surface)] rounded-xl cursor-pointer text-sm font-semibold transition-colors flex items-center justify-between ${value == c.id ? 'bg-[var(--color-surface)]' : ''}`}
+                          className={`px-4 py-3 hover:bg-page rounded-xl cursor-pointer text-sm font-semibold transition-colors flex items-center justify-between ${value == c.id ? 'bg-page' : ''}`}
                           onClick={() => handleSelect(c.id)}
                         >
                           {c.name}
@@ -61,13 +61,13 @@ export default function CategorySelect({ categories, value, onChange, onCreate, 
                         </div>
                     ))
                   ) : (
-                    <div className="px-4 py-3 text-sm text-gray-400 text-center">No categories found.</div>
+                    <div className="px-4 py-3 text-sm text-text-muted text-center">No categories found.</div>
                   )}
                 </div>
-                <div className="p-2 border-t border-gray-50 bg-gray-50/50">
+                <div className="p-2 border-t border-border-main bg-page/50">
                   <button
                     type="button"
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 hover:bg-white rounded-xl text-sm font-semibold transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 hover:bg-surface rounded-xl text-sm font-semibold transition-colors text-text-main"
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsCreating(true);
@@ -79,27 +79,27 @@ export default function CategorySelect({ categories, value, onChange, onCreate, 
               </>
             ) : (
               <div className="p-4 flex flex-col gap-3">
-                <input
-                  type="text"
-                  placeholder="New category name"
-                  className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  <input
+                    type="text"
+                    placeholder="New category name"
+                    className="w-full bg-page text-text-main placeholder-text-muted rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   autoFocus
                 />
                 <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold transition-colors"
-                    onClick={() => setIsCreating(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isSaving}
-                    className="flex-1 px-4 py-2 bg-black text-white hover:bg-gray-900 disabled:opacity-70 rounded-xl text-sm font-semibold transition-colors"
-                    onClick={async () => {
+                    <button
+                      type="button"
+                      className="flex-1 px-4 py-2 bg-page text-text-main hover:bg-page/80 rounded-xl text-sm font-semibold transition-colors"
+                      onClick={() => setIsCreating(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      className="flex-1 px-4 py-2 bg-btn-primary text-btn-text hover:bg-btn-primary-hover disabled:opacity-70 rounded-xl text-sm font-semibold transition-colors"
+                      onClick={async () => {
                       if (!newName.trim() || !onCreate) return;
                       setIsSaving(true);
                       try {

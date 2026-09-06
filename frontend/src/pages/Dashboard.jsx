@@ -85,9 +85,9 @@ export default function Dashboard() {
       <div className="col-span-1 xl:col-span-8 flex flex-col gap-8">
         
         {/* Net Balance Card */}
-        <div className="bg-[var(--color-primary)] rounded-[32px] p-6 sm:p-8 pb-10 relative overflow-hidden">
-          <p className="text-sm font-semibold mb-2 opacity-80">Net Balance</p>
-          <h2 className="text-4xl sm:text-[56px] font-bold tracking-tight mb-8 leading-none">₹ {balance.toLocaleString(undefined, {minimumFractionDigits: 2})}</h2>
+        <div className="bg-sidebar rounded-[32px] p-6 sm:p-8 pb-10 relative overflow-hidden">
+          <p className="text-sm font-semibold mb-2 opacity-80 text-text-main">Net Balance</p>
+          <h2 className="text-4xl sm:text-[56px] font-bold tracking-tight mb-8 leading-none text-text-main">₹ {balance.toLocaleString(undefined, {minimumFractionDigits: 2})}</h2>
           
           <div className="flex flex-wrap gap-4 sm:gap-6">
             <Link to="/transactions?action=quickAdd&type=income" className="flex flex-col items-center gap-2 group">
@@ -139,35 +139,35 @@ export default function Dashboard() {
               </div>
             ) : transactions.length > 0 ? (
               transactions.map(t => (
-                <div key={t.id} className="bg-white rounded-3xl p-4 px-4 sm:px-6 flex items-center justify-between shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+                <div key={t.id} className="bg-surface rounded-3xl p-4 px-4 sm:px-6 flex items-center justify-between shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
                   <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-gray-100 flex items-center justify-center">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-page flex items-center justify-center">
                        {t.type === 'income' ? <ArrowUpRight size={18} strokeWidth={2.5} className="text-green-500" /> : <ArrowDownRight size={18} strokeWidth={2.5} className="text-red-500" />}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <p className="font-bold text-[15px] sm:text-[17px] truncate">{t.category_name || 'Uncategorized'}</p>
                         {t.payment_mode_name && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 bg-gray-50 text-gray-400 rounded border border-gray-100 whitespace-nowrap hidden sm:inline-block">
+                          <span className="text-[10px] font-bold px-2 py-0.5 bg-page text-text-muted rounded border border-border-main whitespace-nowrap hidden sm:inline-block">
                             {t.payment_mode_name}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs sm:text-sm text-gray-400 font-medium truncate">
+                      <p className="text-xs sm:text-sm text-text-muted font-medium truncate">
                         {new Date(t.transaction_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
-                        {t.note && <span className="text-gray-400 ml-1.5 font-normal truncate">· {t.note}</span>}
+                        {t.note && <span className="text-text-muted ml-1.5 font-normal truncate">· {t.note}</span>}
                       </p>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className={`font-bold text-[15px] sm:text-[17px] text-gray-900`}>
+                    <p className={`font-bold text-[15px] sm:text-[17px] text-text-main`}>
                       {t.type === 'expense' ? '- ' : '+ '}₹ {Number(t.amount).toLocaleString(undefined, {minimumFractionDigits: 2})}
                     </p>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No transactions yet.</p>
+              <p className="text-text-muted">No transactions yet.</p>
             )}
           </div>
         </div>
@@ -179,75 +179,75 @@ export default function Dashboard() {
         
         {/* Income / Expense Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-4">
-           <div className="bg-white rounded-3xl p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+           <div className="bg-surface rounded-3xl p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
              <div className="flex justify-between items-center mb-6">
-               <span className="font-bold text-lg">Total Income</span>
-               <span className="font-bold text-lg">:</span>
+               <span className="font-bold text-lg text-text-main">Total Income</span>
+               <span className="font-bold text-lg text-text-main">:</span>
              </div>
-             <p className="text-sm text-gray-500 font-medium mb-1">Total</p>
-             <h3 className="text-2xl font-bold">₹ {totalIncome.toLocaleString(undefined, {minimumFractionDigits: 2})}</h3>
+             <p className="text-sm text-text-muted font-medium mb-1">Total</p>
+             <h3 className="text-2xl font-bold text-text-main">₹ {totalIncome.toLocaleString(undefined, {minimumFractionDigits: 2})}</h3>
            </div>
            
-           <div className="bg-[var(--color-primary)] rounded-3xl p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+           <div className="bg-sidebar rounded-3xl p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
              <div className="flex justify-between items-center mb-6">
-               <span className="font-bold text-lg">Total Expense</span>
-               <span className="font-bold text-lg">:</span>
+               <span className="font-bold text-lg text-text-main">Total Expense</span>
+               <span className="font-bold text-lg text-text-main">:</span>
              </div>
-             <p className="text-sm text-gray-600 font-medium mb-1">Total</p>
-             <h3 className="text-2xl font-bold">₹ {totalExpense.toLocaleString(undefined, {minimumFractionDigits: 2})}</h3>
+             <p className="text-sm text-text-muted font-medium mb-1">Total</p>
+             <h3 className="text-2xl font-bold text-text-main">₹ {totalExpense.toLocaleString(undefined, {minimumFractionDigits: 2})}</h3>
            </div>
         </div>
 
         {/* Statistics Chart */}
-        <div className="bg-white rounded-[32px] p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] flex-1 flex flex-col overflow-hidden">
+        <div className="bg-surface rounded-[32px] p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] flex-1 flex flex-col overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-            <h3 className="text-2xl font-bold">Statistics</h3>
+            <h3 className="text-2xl font-bold text-text-main">Statistics</h3>
             <div className="flex flex-wrap items-center gap-2">
-              <div className="bg-gray-100 rounded-full p-1 flex">
-                <button className="bg-black text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-full">Weekly</button>
-                <button className="text-gray-500 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-full">Monthly</button>
+              <div className="bg-page rounded-full p-1 flex">
+                <button className="bg-btn-primary text-btn-text text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-full">Weekly</button>
+                <button className="text-text-main hover:bg-btn-primary/10 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-full">Monthly</button>
               </div>
-              <button className="w-8 h-8 sm:w-10 sm:h-10 border-2 border-gray-100 rounded-full flex items-center justify-center text-gray-500">
+              <button className="w-8 h-8 sm:w-10 sm:h-10 border-2 border-border-main rounded-full flex items-center justify-center text-text-muted">
                 <Calendar size={16} />
               </button>
-              <button className="w-8 h-8 sm:w-10 sm:h-10 bg-black rounded-full flex items-center justify-center text-white">
+              <button className="w-8 h-8 sm:w-10 sm:h-10 bg-btn-primary rounded-full flex items-center justify-center text-btn-text">
                 <BarChart2 size={16} />
               </button>
             </div>
           </div>
           
-          <div className="flex-1 flex flex-col justify-end gap-2 h-[200px] mb-8 border-b-2 border-gray-50 overflow-x-auto">
+          <div className="flex-1 flex flex-col justify-end gap-2 h-[200px] mb-8 border-b-2 border-border-main overflow-x-auto">
              <div className="flex justify-between items-end h-full px-2 min-w-[300px]">
                {chartData.map((day, idx) => (
                  <div key={idx} className="flex gap-1 items-end h-full w-full justify-center">
-                    <div className="w-2 sm:w-4 bg-black rounded-t-sm" style={{height: `${day.expensePct}%`}}></div>
+                    <div className="w-2 sm:w-4 bg-btn-primary rounded-t-sm" style={{height: `${day.expensePct}%`}}></div>
                     <div className="w-2 sm:w-4 bg-[var(--color-primary)] rounded-t-sm" style={{height: `${day.incomePct}%`}}></div>
                  </div>
                ))}
              </div>
-             <div className="flex justify-between text-[10px] sm:text-xs font-semibold text-gray-400 px-2 mt-2 min-w-[300px]">
+             <div className="flex justify-between text-[10px] sm:text-xs font-semibold text-text-muted px-2 mt-2 min-w-[300px]">
                <span className="text-center w-full">Mon</span><span className="text-center w-full">Tue</span><span className="text-center w-full">Wed</span><span className="text-center w-full">Thu</span><span className="text-center w-full">Fri</span><span className="text-center w-full">Sat</span><span className="text-center w-full">Sun</span>
              </div>
           </div>
           
           {/* Small summary cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-auto">
-            <div className="bg-gray-50 rounded-2xl p-4 flex items-center justify-between">
+            <div className="bg-page rounded-2xl p-4 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-gray-500 mb-1">Income</p>
-                <p className="font-bold text-[14px] sm:text-[15px]">₹ {weeklyIncome.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+                <p className="text-xs font-semibold text-text-muted mb-1">Income</p>
+                <p className="font-bold text-[14px] sm:text-[15px] text-text-main">₹ {weeklyIncome.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
               </div>
-              <div className="w-8 h-8 shrink-0 rounded-full bg-black text-white flex items-center justify-center transform rotate-45">
+              <div className="w-8 h-8 shrink-0 rounded-full bg-btn-primary text-btn-text flex items-center justify-center transform rotate-45">
                 <ArrowDownRight size={16} />
               </div>
             </div>
             
-            <div className="bg-[#EBF0FF] rounded-2xl p-4 flex items-center justify-between">
+            <div className="bg-sidebar rounded-2xl p-4 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-gray-500 mb-1">Expenses</p>
-                <p className="font-bold text-[14px] sm:text-[15px]">₹ {weeklyExpense.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+                <p className="text-xs font-semibold text-text-muted mb-1">Expenses</p>
+                <p className="font-bold text-[14px] sm:text-[15px] text-text-main">₹ {weeklyExpense.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
               </div>
-              <div className="w-8 h-8 shrink-0 rounded-full bg-[var(--color-primary)] text-black flex items-center justify-center transform rotate-45">
+              <div className="w-8 h-8 shrink-0 rounded-full bg-primary text-text-inverted flex items-center justify-center transform rotate-45">
                 <ArrowUpRight size={16} />
               </div>
             </div>

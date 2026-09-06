@@ -199,49 +199,49 @@ export default function Transactions() {
         <div className="flex gap-4">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
             <input
               type="text"
               placeholder="Search..."
-              className="bg-white rounded-full pl-10 pr-4 py-3 w-[200px] shadow-[0_2px_10px_rgb(0,0,0,0.02)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="bg-surface rounded-full pl-10 pr-4 py-3 w-[200px] shadow-[0_2px_10px_rgb(0,0,0,0.02)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] placeholder-text-muted text-text-main"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
-          <button onClick={openAddModal} className="bg-black text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 hover:bg-gray-900 transition-colors">
+          <button onClick={openAddModal} className="bg-btn-primary text-btn-text px-6 py-3 rounded-full font-semibold flex items-center gap-2 hover:bg-btn-primary-hover transition-colors">
             <Plus size={20} /> Add
           </button>
         </div>
       </div>
 
-      <div className="flex gap-4 mb-6">
-        <button onClick={() => setActiveTab('all')} className={`px-6 py-2 rounded-full font-semibold transition-colors ${activeTab === 'all' ? 'bg-black text-white shadow-md' : 'bg-white text-gray-500 hover:bg-black/5 shadow-[0_2px_10px_rgb(0,0,0,0.02)]'}`}>All</button>
-        <button onClick={() => { setActiveTab('income'); setQuickAddData({...quickAddData, transaction_type: 'income', category_id: ''}); }} className={`px-6 py-2 rounded-full font-semibold transition-colors ${activeTab === 'income' ? 'bg-black text-white shadow-md' : 'bg-white text-gray-500 hover:bg-black/5 shadow-[0_2px_10px_rgb(0,0,0,0.02)]'}`}>Income</button>
-        <button onClick={() => { setActiveTab('expense'); setQuickAddData({...quickAddData, transaction_type: 'expense', category_id: ''}); }} className={`px-6 py-2 rounded-full font-semibold transition-colors ${activeTab === 'expense' ? 'bg-black text-white shadow-md' : 'bg-white text-gray-500 hover:bg-black/5 shadow-[0_2px_10px_rgb(0,0,0,0.02)]'}`}>Expense</button>
+      <div className="flex flex-wrap items-center gap-3 mb-6 bg-surface p-2 rounded-full shadow-[0_2px_10px_rgb(0,0,0,0.02)] w-fit border border-border-main">
+        <button onClick={() => setActiveTab('all')} className={`px-6 py-2 rounded-full font-semibold transition-colors ${activeTab === 'all' ? 'bg-btn-primary text-btn-text shadow-md' : 'bg-transparent text-text-muted hover:bg-page'}`}>All</button>
+        <button onClick={() => { setActiveTab('income'); setQuickAddData({...quickAddData, transaction_type: 'income', category_id: ''}); }} className={`px-6 py-2 rounded-full font-semibold transition-colors ${activeTab === 'income' ? 'bg-btn-primary text-btn-text shadow-md' : 'bg-transparent text-text-muted hover:bg-page'}`}>Income</button>
+        <button onClick={() => { setActiveTab('expense'); setQuickAddData({...quickAddData, transaction_type: 'expense', category_id: ''}); }} className={`px-6 py-2 rounded-full font-semibold transition-colors ${activeTab === 'expense' ? 'bg-btn-primary text-btn-text shadow-md' : 'bg-transparent text-text-muted hover:bg-page'}`}>Expense</button>
       </div>
-
       
-      <form onSubmit={handleQuickAddSubmit} className="bg-white rounded-[32px] p-5 shadow-[0_2px_10px_rgb(0,0,0,0.02)] mb-6 flex flex-col w-full">
+      <form onSubmit={handleQuickAddSubmit} className="bg-surface rounded-[32px] p-5 shadow-[0_2px_10px_rgb(0,0,0,0.02)] mb-6 flex flex-col w-full border border-border-main">
         <div 
           className="flex md:hidden justify-between items-center cursor-pointer mb-2"
           onClick={() => setIsQuickAddExpanded(!isQuickAddExpanded)}
         >
-          <span className="font-bold text-[17px]">Quick Add Transaction</span>
-          <span className="text-gray-400 bg-gray-50 rounded-full p-1.5">{isQuickAddExpanded ? '−' : '+'}</span>
+          <span className="font-bold text-[17px] text-text-main">Quick Add Transaction</span>
+          <span className="text-text-muted bg-page rounded-full p-1.5">{isQuickAddExpanded ? '−' : '+'}</span>
         </div>
         <div className={`flex-col md:flex-row flex-wrap xl:flex-nowrap gap-4 items-start md:items-end w-full ${isQuickAddExpanded ? 'flex' : 'hidden md:flex'}`}>
         <div className="w-full md:w-[calc(50%-8px)] xl:flex-1">
-          <label className="block text-xs font-semibold mb-1.5 text-gray-500 ml-1">Type</label>
-          <select name="transaction_type" className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] appearance-none text-sm font-medium h-[46px]" value={quickAddData.transaction_type} onChange={handleQuickAddChange}>
+          <label className="block text-xs font-semibold mb-1.5 text-text-muted ml-1">Type</label>
+          <select name="transaction_type" className="w-full bg-page border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] appearance-none text-sm font-medium h-[46px] text-text-main" value={quickAddData.transaction_type} onChange={handleQuickAddChange}>
             <option value="expense">Expense</option>
             <option value="income">Income</option>
           </select>
         </div>
         <div className="w-full md:w-[calc(50%-8px)] xl:flex-1">
-          <label className="block text-xs font-semibold mb-1.5 text-gray-500 ml-1">Amount</label>
-          <input ref={amountInputRef} type="number" step="0.01" name="amount" className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm font-medium h-[46px]" placeholder="0.00" value={quickAddData.amount} onChange={handleQuickAddChange} required />
+          <label className="block text-xs font-semibold mb-1.5 text-text-muted ml-1">Amount</label>
+          <input ref={amountInputRef} type="number" step="0.01" name="amount" className="w-full bg-page border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm font-medium h-[46px] placeholder-text-muted text-text-main" placeholder="0.00" value={quickAddData.amount} onChange={handleQuickAddChange} required />
         </div>
         <div className="w-full md:w-[calc(50%-8px)] xl:flex-[1.5]">
-          <label className="block text-xs font-semibold mb-1.5 text-gray-500 ml-1">Category</label>
+          <label className="block text-xs font-semibold mb-1.5 text-text-muted ml-1">Category</label>
           <CategorySelect 
             categories={quickAddFilteredCategories} 
             value={quickAddData.category_id} 
@@ -250,73 +250,73 @@ export default function Transactions() {
           />
         </div>
         <div className="w-full md:w-[calc(50%-8px)] xl:flex-[1.2]">
-          <label className="block text-xs font-semibold mb-1.5 text-gray-500 ml-1">Pay Mode</label>
-          <select name="payment_mode_id" className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] appearance-none text-sm font-medium h-[46px]" value={quickAddData.payment_mode_id} onChange={handleQuickAddChange} required>
+          <label className="block text-xs font-semibold mb-1.5 text-text-muted ml-1">Pay Mode</label>
+          <select name="payment_mode_id" className="w-full bg-page border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] appearance-none text-sm font-medium h-[46px] text-text-main" value={quickAddData.payment_mode_id} onChange={handleQuickAddChange} required>
             <option value="" disabled>Select...</option>
             {paymentModes.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
         </div>
         <div className="w-full md:w-[calc(50%-8px)] xl:flex-[1.2]">
-          <label className="block text-xs font-semibold mb-1.5 text-gray-500 ml-1">Date</label>
-          <input type="date" name="transaction_date" className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm font-medium h-[46px]" value={quickAddData.transaction_date} onChange={handleQuickAddChange} required />
+          <label className="block text-xs font-semibold mb-1.5 text-text-muted ml-1">Date</label>
+          <input type="date" name="transaction_date" className="w-full bg-page border-none rounded-2xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm font-medium h-[46px] text-text-main" value={quickAddData.transaction_date} onChange={handleQuickAddChange} required />
         </div>
         <div className="w-full md:w-[calc(50%-8px)] xl:flex-[2]">
-          <label className="block text-xs font-semibold mb-1.5 text-gray-500 ml-1">Description</label>
-          <input type="text" name="description" className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm font-medium h-[46px]" placeholder="Note..." value={quickAddData.description} onChange={handleQuickAddChange} />
+          <label className="block text-xs font-semibold mb-1.5 text-text-muted ml-1">Description</label>
+          <input type="text" name="description" className="w-full bg-page border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm font-medium h-[46px] placeholder-text-muted text-text-main" placeholder="Note..." value={quickAddData.description} onChange={handleQuickAddChange} />
         </div>
         <div className="w-full xl:w-auto mt-2 xl:mt-0">
-          <button type="submit" disabled={quickAddLoading} className="w-full xl:w-auto bg-black text-white px-8 py-3 rounded-2xl font-semibold hover:bg-gray-900 transition-colors disabled:opacity-70 h-[46px] whitespace-nowrap">
+          <button type="submit" disabled={quickAddLoading} className="w-full xl:w-auto bg-btn-primary text-btn-text px-8 py-3 rounded-2xl font-semibold hover:bg-btn-primary-hover transition-colors disabled:opacity-70 h-[46px] whitespace-nowrap">
             {quickAddLoading ? '...' : 'Save'}
           </button>
         </div>
         </div>
       </form>
-      <div className="flex-1 bg-white rounded-[32px] p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] overflow-hidden flex flex-col">
+      <div className="flex-1 bg-surface rounded-[32px] p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-border-main overflow-hidden flex flex-col text-text-main">
         {loading ? (
            <div className="animate-pulse space-y-4">
-             {[1,2,3,4,5].map(i => <div key={i} className="h-16 bg-slate-100 rounded-2xl w-full"></div>)}
+             {[1,2,3,4,5].map(i => <div key={i} className="h-16 bg-page rounded-2xl w-full"></div>)}
            </div>
         ) : (
           <div className="flex-1 overflow-y-auto space-y-3 pr-2">
             {displayedTransactions.length > 0 ? displayedTransactions.map(t => (
-              <div key={t.id} className="bg-[var(--color-surface)] rounded-2xl p-4 px-6 flex items-center justify-between group">
+              <div key={t.id} className="bg-page rounded-2xl p-4 px-6 flex items-center justify-between group">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-surface flex items-center justify-center shadow-sm shrink-0">
                     {t.type === 'income' ? <ArrowUpRight size={18} strokeWidth={2.5} className="text-green-500" /> : <ArrowDownRight size={18} strokeWidth={2.5} className="text-red-500" />}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <p className="font-bold text-[17px] truncate">{t.category_name || 'Uncategorized'}</p>
+                      <p className="font-bold text-[17px] truncate text-text-main">{t.category_name || 'Uncategorized'}</p>
                       {t.payment_mode_name && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 bg-white text-gray-400 rounded border border-gray-100 whitespace-nowrap hidden sm:inline-block">
+                        <span className="text-[10px] font-bold px-2 py-0.5 bg-surface text-text-muted rounded border border-border-main whitespace-nowrap hidden sm:inline-block">
                           {t.payment_mode_name}
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500 font-medium truncate">
+                    <p className="text-sm text-text-muted font-medium truncate">
                       {new Date(t.transaction_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
-                      {t.note && <span className="text-gray-400 ml-1.5 font-normal truncate">· {t.note}</span>}
+                      {t.note && <span className="text-text-muted/60 ml-1.5 font-normal truncate">· {t.note}</span>}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <p className={`font-bold text-[17px] ${t.type === 'expense' ? 'text-gray-900' : 'text-gray-900'}`}>
+                    <p className={`font-bold text-[17px] text-text-main`}>
                       {t.type === 'expense' ? '- ' : '+ '}₹ {Number(t.amount).toLocaleString(undefined, {minimumFractionDigits: 2})}
                     </p>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEditModal(t)} className="p-2 text-gray-400 hover:text-black bg-white rounded-full shadow-sm">
+                    <button onClick={() => openEditModal(t)} className="p-2 text-text-muted hover:text-text-main bg-surface rounded-full shadow-sm">
                       <Edit2 size={16} />
                     </button>
-                    <button onClick={() => handleDelete(t.id)} className="p-2 text-gray-400 hover:text-red-500 bg-white rounded-full shadow-sm">
+                    <button onClick={() => handleDelete(t.id)} className="p-2 text-text-muted hover:text-red-500 bg-surface rounded-full shadow-sm">
                       <Trash2 size={16} />
                     </button>
                   </div>
                 </div>
               </div>
             )) : (
-              <div className="text-center py-10 text-gray-500">No transactions found.</div>
+              <div className="text-center py-10 text-text-muted">No transactions found.</div>
             )}
           </div>
         )}
@@ -326,25 +326,25 @@ export default function Transactions() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Type</label>
-              <select name="transaction_type" className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] appearance-none" value={formData.transaction_type} onChange={handleChange}>
+              <label className="block text-sm font-medium mb-1 text-text-muted">Type</label>
+              <select name="transaction_type" className="w-full bg-page border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] appearance-none text-text-main" value={formData.transaction_type} onChange={handleChange}>
                 <option value="expense">Expense</option>
                 <option value="income">Income</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Amount</label>
-              <input type="number" step="0.01" name="amount" className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" value={formData.amount} onChange={handleChange} required />
+              <label className="block text-sm font-medium mb-1 text-text-muted">Amount</label>
+              <input type="number" step="0.01" name="amount" className="w-full bg-page border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main" value={formData.amount} onChange={handleChange} required />
             </div>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Date</label>
-              <input type="date" name="transaction_date" className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" value={formData.transaction_date} onChange={handleChange} required />
+              <label className="block text-sm font-medium mb-1 text-text-muted">Date</label>
+              <input type="date" name="transaction_date" className="w-full bg-page border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main" value={formData.transaction_date} onChange={handleChange} required />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Category</label>
+              <label className="block text-sm font-medium mb-1 text-text-muted">Category</label>
               <CategorySelect 
                 categories={filteredCategories} 
                 value={formData.category_id} 

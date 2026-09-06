@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import { authApi } from '../api/authApi';
 
 export default function Register() {
@@ -12,6 +12,7 @@ export default function Register() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { setIsAuthLoading } = useOutletContext();
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -19,6 +20,7 @@ export default function Register() {
     e.preventDefault();
     setError('');
     setLoading(true);
+    setIsAuthLoading(true);
     
     try {
       await authApi.register(formData);
@@ -31,13 +33,14 @@ export default function Register() {
       }
     } finally {
       setLoading(false);
+      setIsAuthLoading(false);
     }
   };
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-center mb-2">Create Account</h1>
-      <p className="text-gray-500 text-center mb-8">Join to manage your finances easily.</p>
+      <h1 className="text-2xl font-bold text-center mb-2 text-text-main">Create Account</h1>
+      <p className="text-text-muted text-center mb-8">Sign up to get started.</p>
       
       {error && <div className="bg-red-50 text-red-500 p-3 rounded-xl mb-4 text-sm">{error}</div>}
       
@@ -47,7 +50,7 @@ export default function Register() {
           <input
             type="text"
             name="user_name"
-            className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            className="w-full bg-page text-text-main placeholder-text-muted border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             value={formData.user_name}
             onChange={handleChange}
             required
@@ -60,7 +63,7 @@ export default function Register() {
           <input
             type="email"
             name="email"
-            className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            className="w-full bg-page text-text-main placeholder-text-muted border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             value={formData.email}
             onChange={handleChange}
             required
@@ -71,7 +74,7 @@ export default function Register() {
           <input
             type="text"
             name="mobile_no"
-            className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            className="w-full bg-page text-text-main placeholder-text-muted border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             value={formData.mobile_no}
             onChange={handleChange}
             required
@@ -95,13 +98,13 @@ export default function Register() {
         <button 
           type="submit" 
           disabled={loading}
-          className="w-full bg-black text-white rounded-full py-4 font-semibold hover:bg-gray-900 disabled:opacity-70 transition-colors mt-2"
+          className="w-full bg-[var(--color-primary)] text-black rounded-full py-4 font-semibold hover:bg-[var(--color-primary-dark)] disabled:opacity-70 transition-colors mt-2"
         >
           {loading ? 'Sending OTP...' : 'Sign Up'}
         </button>
       </form>
       
-      <p className="text-center mt-6 text-sm">
+      <p className="text-center mt-6 text-sm text-text-main">
         Already have an account? <Link to="/login" className="font-semibold hover:underline">Log in</Link>
       </p>
     </div>

@@ -97,13 +97,13 @@ export default function Categories() {
   const expenseCategories = categories.filter(c => c.type === 'expense');
 
   const renderCategoryCard = (cat) => (
-    <div key={cat.id} className="bg-white rounded-2xl p-4 flex items-center justify-between shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-50">
-      <div className="font-semibold">{cat.name}</div>
+    <div key={cat.id} className="bg-surface rounded-2xl p-4 flex items-center justify-between shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-border">
+      <div className="font-semibold text-text-main">{cat.name}</div>
       <div className="flex gap-2">
-        <button onClick={() => openEditModal(cat)} className="p-2 text-gray-400 hover:text-black bg-gray-50 rounded-full transition-colors">
+        <button onClick={() => openEditModal(cat)} className="p-2 text-text-muted hover:text-text-main bg-page rounded-full transition-colors">
           <Edit2 size={16} />
         </button>
-        <button onClick={() => handleDelete(cat.id)} className="p-2 text-gray-400 hover:text-red-500 bg-gray-50 rounded-full transition-colors">
+        <button onClick={() => handleDelete(cat.id)} className="p-2 text-text-muted hover:text-red-500 bg-page rounded-full transition-colors">
           <Trash2 size={16} />
         </button>
       </div>
@@ -113,33 +113,33 @@ export default function Categories() {
   return (
     <div className="h-full">
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-bold">Categories</h2>
-        <button onClick={openAddModal} className="bg-black text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 hover:bg-gray-900 transition-colors">
+        <h2 className="text-3xl font-bold text-text-main">Categories</h2>
+        <button onClick={openAddModal} className="bg-btn-primary text-btn-text px-6 py-3 rounded-full font-semibold flex items-center gap-2 hover:bg-btn-primary-hover transition-colors">
           <Plus size={20} /> Add Category
         </button>
       </div>
 
       {loading ? (
         <div className="animate-pulse space-y-4">
-          <div className="h-20 bg-slate-200 rounded-2xl w-full"></div>
-          <div className="h-20 bg-slate-200 rounded-2xl w-full"></div>
+          <div className="h-20 bg-page rounded-2xl w-full"></div>
+          <div className="h-20 bg-page rounded-2xl w-full"></div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
-            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-text-main">
               <div className="w-3 h-3 rounded-full bg-green-500"></div> Income
             </h3>
             <div className="space-y-3">
-              {incomeCategories.length > 0 ? incomeCategories.map(renderCategoryCard) : <p className="text-gray-500 text-sm">No income categories.</p>}
+              {incomeCategories.length > 0 ? incomeCategories.map(renderCategoryCard) : <p className="text-text-muted text-sm">No income categories.</p>}
             </div>
           </div>
           <div>
-            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-text-main">
               <div className="w-3 h-3 rounded-full bg-red-500"></div> Expense
             </h3>
             <div className="space-y-3">
-              {expenseCategories.length > 0 ? expenseCategories.map(renderCategoryCard) : <p className="text-gray-500 text-sm">No expense categories.</p>}
+              {expenseCategories.length > 0 ? expenseCategories.map(renderCategoryCard) : <p className="text-text-muted text-sm">No expense categories.</p>}
             </div>
           </div>
         </div>
@@ -156,19 +156,19 @@ export default function Categories() {
           )}
           
           <div>
-            <label className="block text-sm font-medium mb-1">Name</label>
+            <label className="block text-sm font-medium mb-1 text-text-main">Name</label>
             <input
               type="text"
-              className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="w-full bg-page border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main"
               value={name}
               onChange={e => setName(e.target.value)}
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Type</label>
+            <label className="block text-sm font-medium mb-1 text-text-main">Type</label>
             <select
-              className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] appearance-none"
+              className="w-full bg-page border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] appearance-none text-text-main"
               value={type}
               onChange={e => setType(e.target.value)}
               required
@@ -180,7 +180,7 @@ export default function Categories() {
           <button 
             type="submit" 
             disabled={formLoading}
-            className="w-full bg-black text-white rounded-full py-4 font-semibold hover:bg-gray-900 disabled:opacity-70 transition-colors mt-4"
+            className="w-full bg-btn-primary text-btn-text rounded-full py-4 font-semibold hover:bg-btn-primary-hover disabled:opacity-70 transition-colors mt-4"
           >
             {formLoading ? 'Saving...' : 'Save Category'}
           </button>

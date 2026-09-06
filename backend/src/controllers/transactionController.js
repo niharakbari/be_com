@@ -28,11 +28,11 @@ const createTransaction = asyncHandler(
 const getTransactions = asyncHandler(
     async (req, res) => {
 
-        const transactions = await transactionService.getTransactions(req.user.id, req.query);
+        const result = await transactionService.getTransactions(req.user.id, req.query);
 
         res.status(200).json({
             success: true,
-            data: transactions
+            data: result
         });
     }
 );

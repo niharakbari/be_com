@@ -47,8 +47,12 @@ const getTransactions = async (
         type,
         categoryId,
         paymentModeId,
+        startDate,
+        endDate,
         sortBy = "date",
-        order = "DESC"
+        order = "DESC",
+        limit = 10,
+        offset = 0
     } = queryParams;
 
     const whereConditions = ["t.user_id = ?"];
@@ -69,6 +73,16 @@ const getTransactions = async (
         values.push(paymentModeId);
     }
 
+    if (startDate) {
+        whereConditions.push("t.transaction_date >= ?");
+        values.push(startDate);
+    }
+
+    if (endDate) {
+        whereConditions.push("t.transaction_date <= ?");
+        values.push(endDate);
+    }
+
     // Safe sorting
     const allowedSortFields = {
         date: "t.transaction_date",
@@ -84,6 +98,18 @@ const getTransactions = async (
         order?.toUpperCase() === "ASC"
             ? "ASC"
             : "DESC";
+
+    const [countResult] = await connection.query(
+        `
+        SELECT COUNT(t.id) AS total
+        FROM transactions t
+        LEFT JOIN categories c ON t.category_id = c.id
+        LEFT JOIN payment_modes p ON t.payment_mode_id = p.id
+        WHERE ${whereConditions.join(" AND ")}
+        `,
+        values
+    );
+    const totalCount = countResult[0].total;
 
     const [transactions] = await connection.query(
         `
@@ -108,11 +134,12 @@ const getTransactions = async (
         WHERE ${whereConditions.join(" AND ")}
 
         ORDER BY ${sortColumn} ${sortOrder}
+        LIMIT ? OFFSET ?
         `,
-        values
+        [...values, limit, offset]
     );
 
-    return transactions;
+    return { transactions, totalCount };
 };
 
 

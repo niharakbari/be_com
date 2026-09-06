@@ -85,7 +85,51 @@ const  createTransaction = async (
 
 
 const getTransactions = async (userId, queryParams = {}) => {
-    return await transactionModel.getTransactions(userId, queryParams);
+    const { startDate, endDate, page, limit } = queryParams;
+
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    
+    if (startDate) {
+        if (!dateRegex.test(startDate) || isNaN(new Date(startDate).getTime())) {
+            throw new AppError("Invalid startDate format. Use YYYY-MM-DD", 400);
+        }
+    }
+    
+    if (endDate) {
+        if (!dateRegex.test(endDate) || isNaN(new Date(endDate).getTime())) {
+            throw new AppError("Invalid endDate format. Use YYYY-MM-DD", 400);
+        }
+        if (startDate && new Date(startDate) > new Date(endDate)) {
+            throw new AppError("startDate cannot be greater than endDate", 400);
+        }
+        queryParams.endDate = endDate + " 23:59:59";
+    }
+
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+
+    const validPage = !isNaN(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+    const validLimit = !isNaN(parsedLimit) && parsedLimit > 0 ? parsedLimit : 10;
+    
+    const offset = (validPage - 1) * validLimit;
+
+    queryParams.page = validPage;
+    queryParams.limit = validLimit;
+    queryParams.offset = offset;
+
+    const { transactions, totalCount } = await transactionModel.getTransactions(userId, queryParams);
+    
+    const totalPages = Math.ceil(totalCount / validLimit);
+
+    return {
+        transactions,
+        pagination: {
+            page: validPage,
+            limit: validLimit,
+            total: totalCount,
+            totalPages
+        }
+    };
 };
 
 
