@@ -1,18 +1,89 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, ArrowUpRight, ArrowDownRight, Search } from 'lucide-react';
+import { Plus, Edit2, Trash2, ArrowUpRight, ArrowDownRight, Search, X, Target } from 'lucide-react';
 import { transactionApi } from '../api/transactionApi';
 import { categoryApi } from '../api/categoryApi';
+import { budgetApi } from '../api/budgetApi';
 import { paymentModeApi } from '../api/paymentModeApi';
 import Modal from '../components/ui/Modal';
 import CategorySelect from '../components/ui/CategorySelect';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
 
+
+const BudgetInsightPreview = ({ type, categoryId, date, amount, budgetsUsage }) => {
+  if (type !== 'expense' || !categoryId || !date) return null;
+  
+  const selectedDate = new Date(date);
+  if (isNaN(selectedDate)) return null;
+  const m = selectedDate.getMonth() + 1;
+  const y = selectedDate.getFullYear();
+  
+  const applicableBudgets = budgetsUsage.filter(b => b.budget_month === m && b.budget_year === y);
+  const catBudget = applicableBudgets.find(b => b.category_id === Number(categoryId));
+  const overallBudget = applicableBudgets.find(b => b.category_id === null);
+
+  if (!catBudget && !overallBudget) return null;
+
+  const renderInsight = (budget) => {
+    const limit = Number(budget.amount) || 0;
+    const spent = Number(budget.spent) || 0;
+    const inputAmount = Number(amount) || 0;
+    const projectedSpent = spent + inputAmount;
+    const projectedRemaining = limit - projectedSpent;
+    const projectedUsagePct = limit > 0 ? (projectedSpent / limit) * 100 : 0;
+    const isExceeded = projectedRemaining < 0;
+    
+    return (
+      <div key={budget.id} className="bg-page border border-border-main rounded-2xl p-4 w-full sm:w-1/2 flex-1">
+         <div className="flex justify-between items-center mb-3">
+            <span className="text-sm font-bold text-text-main flex items-center gap-1.5">
+               <Target size={14} className="text-btn-primary" />
+               {budget.category_name || "Overall Budget"}
+            </span>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${isExceeded ? 'bg-red-500/10 text-red-500' : projectedUsagePct >= 80 ? 'bg-amber-500/10 text-amber-500' : 'bg-surface border border-border-main text-text-muted'}`}>
+              {isExceeded ? 'Exceeded' : projectedUsagePct >= 80 ? 'Near Limit' : 'Normal'}
+            </span>
+         </div>
+         <div className="flex justify-between items-end mb-1.5 mt-2 text-sm">
+            <div>
+              <span className="text-text-muted text-xs font-semibold block mb-0.5">Limit</span>
+              <span className="font-bold text-text-main">₹{limit.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+            </div>
+            <div className="text-center">
+              <span className="text-text-muted text-xs font-semibold block mb-0.5">Spent</span>
+              <span className="font-bold text-text-main">₹{spent.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+            </div>
+            <div className="text-right">
+              <span className="text-text-muted text-xs font-semibold block mb-0.5">Projected Remaining</span>
+              <span className={`font-bold ${isExceeded ? 'text-red-500' : 'text-text-main'}`}>
+                {isExceeded ? '-' : ''}₹{Math.abs(projectedRemaining).toLocaleString(undefined, {minimumFractionDigits: 2})}
+              </span>
+            </div>
+         </div>
+         <div className="w-full bg-surface rounded-full h-1.5 overflow-hidden border border-border-main relative mt-2">
+           <div 
+             className={`absolute top-0 left-0 h-1.5 rounded-full transition-all duration-300 ${isExceeded ? 'bg-red-500' : projectedUsagePct >= 80 ? 'bg-amber-500' : 'bg-btn-primary'}`} 
+             style={{ width: `${Math.min(projectedUsagePct, 100)}%` }}
+           ></div>
+         </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col sm:flex-row gap-3 w-full mt-4 mb-2 animate-in fade-in slide-in-from-top-2 duration-300">
+       {catBudget && renderInsight(catBudget)}
+       {overallBudget && renderInsight(overallBudget)}
+    </div>
+  );
+};
+
 export default function Transactions() {
   const location = useLocation();
   const navigate = useNavigate();
   const amountInputRef = useRef(null);
   const [transactions, setTransactions] = useState([]);
+  const [budgetsUsage, setBudgetsUsage] = useState([]);
   const [categories, setCategories] = useState([]);
   const [paymentModes, setPaymentModes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +110,18 @@ export default function Transactions() {
   
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Pagination & Filtering state
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [sortBy, setSortBy] = useState('date');
+  const [order, setOrder] = useState('DESC');
+  const [filterCategoryId, setFilterCategoryId] = useState('');
+  const [filterPaymentModeId, setFilterPaymentModeId] = useState('');
+
   const [activeTab, setActiveTab] = useState('all');
   const [isQuickAddExpanded, setIsQuickAddExpanded] = useState(false);
 
@@ -49,17 +132,55 @@ export default function Transactions() {
     return res.data.data;
   };
 
-  const fetchData = async () => {
+  const fetchMetadata = async () => {
     try {
-      setLoading(true);
-      const [transRes, catRes, payRes] = await Promise.all([
-        transactionApi.getAll(),
+      const [catRes, payRes, budgetRes] = await Promise.all([
         categoryApi.getAll(),
-        paymentModeApi.getAll().catch(() => ({ data: { data: [] } })) // Fallback if no endpoint
+        paymentModeApi.getAll().catch(() => ({ data: { data: [] } })),
+        budgetApi.getUsage().catch(() => ({ data: { data: [] } }))
       ]);
-      setTransactions(Array.isArray(transRes.data.data) ? transRes.data.data : transRes.data.data.transactions || []);
       setCategories(catRes.data.data || []);
       setPaymentModes(payRes.data.data || payRes.data || []);
+      setBudgetsUsage(budgetRes.data?.data || []);
+    } catch (error) {
+      console.error('Failed to fetch metadata', error);
+    }
+  };
+
+  const handleClearFilters = () => {
+    setActiveTab('all');
+    setFilterCategoryId('');
+    setFilterPaymentModeId('');
+    setStartDate('');
+    setEndDate('');
+    setSortBy('date');
+    setOrder('DESC');
+    setSearchTerm('');
+    setPage(1);
+  };
+
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      const params = { page, limit: 10, sortBy, order };
+      
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
+      if (filterCategoryId) params.categoryId = filterCategoryId;
+      if (filterPaymentModeId) params.paymentModeId = filterPaymentModeId;
+      if (activeTab !== 'all') params.type = activeTab;
+
+      const res = await transactionApi.getAll(params);
+      const data = res.data?.data || {};
+      
+      setTransactions(Array.isArray(data) ? data : data.transactions || []);
+      
+      if (data.pagination) {
+        setTotalPages(data.pagination.totalPages || 1);
+        setTotalRecords(data.pagination.total || 0);
+      } else {
+        setTotalPages(1);
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -68,9 +189,12 @@ export default function Transactions() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchData();
+    fetchMetadata();
   }, []);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [page, activeTab, startDate, endDate, sortBy, order, filterCategoryId, filterPaymentModeId]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -116,7 +240,7 @@ export default function Transactions() {
     if (window.confirm('Delete this transaction?')) {
       try {
         await transactionApi.delete(id);
-        fetchData();
+        fetchTransactions();
       } catch (err) {
         alert('Failed to delete transaction');
       }
@@ -148,7 +272,9 @@ export default function Transactions() {
       };
       await transactionApi.create(payload);
       setQuickAddData(initialFormState);
-      fetchData();
+      fetchTransactions();
+      fetchMetadata();
+      window.dispatchEvent(new Event('refreshNotifications'));
     } catch (error) {
       alert(error.response?.data?.message || 'Failed to save transaction');
     } finally {
@@ -174,7 +300,9 @@ export default function Transactions() {
         await transactionApi.create(payload);
       }
       setIsModalOpen(false);
-      fetchData();
+      fetchTransactions();
+      fetchMetadata();
+      window.dispatchEvent(new Event('refreshNotifications'));
     } catch (error) {
       alert(error.response?.data?.message || 'Failed to save transaction');
     } finally {
@@ -188,8 +316,7 @@ export default function Transactions() {
   const displayedTransactions = transactions.filter(t => {
     const matchesSearch = (t.category_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (t.description || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTab = activeTab === 'all' || t.type === activeTab;
-    return matchesSearch && matchesTab;
+    return matchesSearch;
   });
 
   return (
@@ -214,10 +341,78 @@ export default function Transactions() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 mb-6 bg-surface p-2 rounded-full shadow-[0_2px_10px_rgb(0,0,0,0.02)] w-fit border border-border-main">
-        <button onClick={() => setActiveTab('all')} className={`px-6 py-2 rounded-full font-semibold transition-colors ${activeTab === 'all' ? 'bg-btn-primary text-btn-text shadow-md' : 'bg-transparent text-text-muted hover:bg-page'}`}>All</button>
-        <button onClick={() => { setActiveTab('income'); setQuickAddData({...quickAddData, transaction_type: 'income', category_id: ''}); }} className={`px-6 py-2 rounded-full font-semibold transition-colors ${activeTab === 'income' ? 'bg-btn-primary text-btn-text shadow-md' : 'bg-transparent text-text-muted hover:bg-page'}`}>Income</button>
-        <button onClick={() => { setActiveTab('expense'); setQuickAddData({...quickAddData, transaction_type: 'expense', category_id: ''}); }} className={`px-6 py-2 rounded-full font-semibold transition-colors ${activeTab === 'expense' ? 'bg-btn-primary text-btn-text shadow-md' : 'bg-transparent text-text-muted hover:bg-page'}`}>Expense</button>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex flex-wrap items-center gap-3 bg-surface p-2 rounded-full shadow-[0_2px_10px_rgb(0,0,0,0.02)] w-fit border border-border-main">
+          
+        <button onClick={() => { setActiveTab('all'); setPage(1); }} className={`px-6 py-2 rounded-full font-semibold transition-colors ${activeTab === 'all' ? 'bg-btn-primary text-btn-text shadow-md' : 'bg-transparent text-text-muted hover:bg-page'}`}>All</button>
+        <button onClick={() => { setActiveTab('income'); setPage(1); setQuickAddData({...quickAddData, transaction_type: 'income', category_id: ''}); }} className={`px-6 py-2 rounded-full font-semibold transition-colors ${activeTab === 'income' ? 'bg-btn-primary text-btn-text shadow-md' : 'bg-transparent text-text-muted hover:bg-page'}`}>Income</button>
+        <button onClick={() => { setActiveTab('expense'); setPage(1); setQuickAddData({...quickAddData, transaction_type: 'expense', category_id: ''}); }} className={`px-6 py-2 rounded-full font-semibold transition-colors ${activeTab === 'expense' ? 'bg-btn-primary text-btn-text shadow-md' : 'bg-transparent text-text-muted hover:bg-page'}`}>Expense</button>
+      
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-3 bg-surface p-2 rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-border-main">
+          <select 
+            className="bg-page px-3 py-1.5 rounded-lg border-none text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main cursor-pointer" 
+            value={filterCategoryId} 
+            onChange={e => { setFilterCategoryId(e.target.value); setPage(1); }} 
+          >
+            <option value="">All Categories</option>
+            {categories.filter(c => activeTab === 'all' ? true : c.type === activeTab).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+
+          <select 
+            className="bg-page px-3 py-1.5 rounded-lg border-none text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main cursor-pointer" 
+            value={filterPaymentModeId} 
+            onChange={e => { setFilterPaymentModeId(e.target.value); setPage(1); }} 
+          >
+            <option value="">All Payment Modes</option>
+            {paymentModes.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          
+          <div className="h-6 w-px bg-border-main mx-1 hidden sm:block"></div>
+          
+          <input 
+            type="date" 
+            className="bg-page px-3 py-1.5 rounded-lg border-none text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main" 
+            value={startDate} 
+            onChange={e => { setStartDate(e.target.value); setPage(1); }} 
+          />
+          <span className="text-text-muted text-sm font-medium">to</span>
+          <input 
+            type="date" 
+            className="bg-page px-3 py-1.5 rounded-lg border-none text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main" 
+            value={endDate} 
+            onChange={e => { setEndDate(e.target.value); setPage(1); }} 
+          />
+          
+          <div className="h-6 w-px bg-border-main mx-1"></div>
+          
+          <select 
+            className="bg-page px-3 py-1.5 rounded-lg border-none text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main cursor-pointer" 
+            value={`${sortBy}-${order}`} 
+            onChange={e => { 
+              const [s, o] = e.target.value.split('-'); 
+              setSortBy(s); 
+              setOrder(o); 
+              setPage(1); 
+            }}
+          >
+            <option value="date-DESC">Newest First</option>
+            <option value="date-ASC">Oldest First</option>
+            <option value="amount-DESC">Amount: High to Low</option>
+            <option value="amount-ASC">Amount: Low to High</option>
+          </select>
+          
+          {(filterCategoryId || filterPaymentModeId || startDate || endDate || sortBy !== 'date' || order !== 'DESC' || activeTab !== 'all' || searchTerm !== '') && (
+            <button 
+              onClick={handleClearFilters}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors ml-1"
+            >
+              <X size={16} />
+              Clear
+            </button>
+          )}
+        </div>
       </div>
       
       <form onSubmit={handleQuickAddSubmit} className="bg-surface rounded-[32px] p-5 shadow-[0_2px_10px_rgb(0,0,0,0.02)] mb-6 flex flex-col w-full border border-border-main">
@@ -270,6 +465,13 @@ export default function Transactions() {
           </button>
         </div>
         </div>
+        <BudgetInsightPreview 
+          type={quickAddData.transaction_type}
+          categoryId={quickAddData.category_id}
+          date={quickAddData.transaction_date}
+          amount={quickAddData.amount}
+          budgetsUsage={budgetsUsage}
+        />
       </form>
       <div className="flex-1 bg-surface rounded-[32px] p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-border-main overflow-hidden flex flex-col text-text-main">
         {loading ? (
@@ -320,6 +522,34 @@ export default function Transactions() {
             )}
           </div>
         )}
+        
+        {/* Pagination Controls */}
+        {!loading && totalPages > 1 && (
+            <div className="flex items-center justify-between pt-4 mt-4 border-t border-border-main">
+              <span className="text-sm text-text-muted font-medium">
+                Showing {transactions.length} of {totalRecords} transactions
+              </span>
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium text-text-main">Page {page} of {totalPages}</span>
+                <div className="flex gap-2">
+                  <button 
+                    disabled={page === 1} 
+                    onClick={() => setPage(page - 1)} 
+                    className="px-4 py-2 text-sm font-semibold bg-page text-text-main rounded-full hover:bg-border-main disabled:opacity-50 transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <button 
+                    disabled={page === totalPages} 
+                    onClick={() => setPage(page + 1)} 
+                    className="px-4 py-2 text-sm font-semibold bg-page text-text-main rounded-full hover:bg-border-main disabled:opacity-50 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+        )}
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingTransaction ? "Edit Transaction" : "New Transaction"}>
@@ -367,6 +597,13 @@ export default function Transactions() {
             <input type="text" name="description" className="w-full bg-[var(--color-surface)] border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" value={formData.description} onChange={handleChange} />
           </div>
 
+          <BudgetInsightPreview 
+             type={formData.transaction_type}
+             categoryId={formData.category_id}
+             date={formData.transaction_date}
+             amount={formData.amount}
+             budgetsUsage={budgetsUsage}
+          />
           <button type="submit" disabled={formLoading} className="w-full bg-black text-white rounded-full py-4 font-semibold hover:bg-gray-900 disabled:opacity-70 transition-colors mt-4">
             {formLoading ? 'Saving...' : 'Save Transaction'}
           </button>

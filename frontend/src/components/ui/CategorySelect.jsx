@@ -8,6 +8,25 @@ export default function CategorySelect({ categories, value, onChange, onCreate, 
   const [isCreating, setIsCreating] = useState(false);
   const [newName, setNewName] = useState('');
 
+  const handleQuickCreate = async (nameToCreate) => {
+    if (!onCreate) return;
+    setIsSaving(true);
+    try {
+      const newCat = await onCreate(nameToCreate);
+      if (newCat && newCat.id) {
+        onChange(newCat.id);
+        setIsOpen(false);
+        setSearchTerm('');
+        setIsCreating(false);
+        setNewName('');
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to create category');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSelect = (id) => {
     onChange(id);
     setIsOpen(false);
@@ -67,13 +86,18 @@ export default function CategorySelect({ categories, value, onChange, onCreate, 
                 <div className="p-2 border-t border-border-main bg-page/50">
                   <button
                     type="button"
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 hover:bg-surface rounded-xl text-sm font-semibold transition-colors text-text-main"
+                    disabled={isSaving}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 hover:bg-surface rounded-xl text-sm font-semibold transition-colors text-text-main disabled:opacity-70"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setIsCreating(true);
+                      if (searchTerm.trim()) {
+                        handleQuickCreate(searchTerm.trim());
+                      } else {
+                        setIsCreating(true);
+                      }
                     }}
                   >
-                    <Plus size={16} /> Add Category
+                    <Plus size={16} /> {isSaving ? 'Saving...' : (searchTerm.trim() ? `Add "${searchTerm.trim()}"` : 'Add Category')}
                   </button>
                 </div>
               </>

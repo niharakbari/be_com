@@ -23,13 +23,16 @@ export default function MainLayout() {
       </div>
       
       <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
-        <div className="flex items-center md:hidden px-6 pt-6">
-          <button 
-            onClick={() => setMobileMenuOpen(true)}
-            className="p-2 bg-surface text-text-main rounded-full shadow-sm"
-          >
-            <Menu size={24} />
-          </button>
+        <div className="flex items-center justify-between md:hidden px-6 pt-6 mb-2">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-2 bg-surface text-text-main rounded-full shadow-sm"
+            >
+              <Menu size={24} />
+            </button>
+            <span className="font-bold text-xl tracking-tight text-text-main">Finance.</span>
+          </div>
         </div>
         <Header />
         <main className="flex-1 overflow-y-auto p-4 md:p-8 pt-4 pb-12">

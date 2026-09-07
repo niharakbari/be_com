@@ -10,6 +10,9 @@ const paymentModeModel = require(
     '../models/paymentModeModel'
 );
 
+const notificationService = 
+    require("./notificationService");
+
 const AppError = require("../utils/AppError");
 
 
@@ -48,7 +51,7 @@ const validateCategoryAndPaymentMode = async (
 };
 
 
-const  createTransaction = async (
+const createTransaction = async (
     userId,
     transactionData
 ) => {
@@ -77,11 +80,16 @@ const  createTransaction = async (
             note
         );
 
+    await notificationService.generateBudgetNotifications(
+        userId
+    );
+
     return await transactionModel.getTransactionById(
         transactionId,
         userId
     );
 };
+
 
 
 const getTransactions = async (userId, queryParams = {}) => {
@@ -109,7 +117,9 @@ const getTransactions = async (userId, queryParams = {}) => {
     const parsedLimit = parseInt(limit, 10);
 
     const validPage = !isNaN(parsedPage) && parsedPage > 0 ? parsedPage : 1;
-    const validLimit = !isNaN(parsedLimit) && parsedLimit > 0 ? parsedLimit : 10;
+    const validLimit = !isNaN(parsedLimit) && parsedLimit > 0
+        ? Math.min(parsedLimit, 100)
+        : 10;
     
     const offset = (validPage - 1) * validLimit;
 
@@ -174,7 +184,6 @@ const updateTransaction = async (
         );
     }
 
-    // Merge existing values with incoming PATCH values
     const updatedData = {
         category_id:
             transactionData.category_id ??
@@ -212,6 +221,10 @@ const updateTransaction = async (
         updatedData.amount,
         updatedData.transaction_date,
         updatedData.note
+    );
+
+    await notificationService.generateBudgetNotifications(
+        userId
     );
 
     return await transactionModel.getTransactionById(

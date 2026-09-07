@@ -11,6 +11,7 @@ import ResetPassword from './pages/ResetPassword';
 import MainLayout from './components/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Categories from './pages/Categories';
+import Budgets from './pages/Budgets';
 import Transactions from './pages/Transactions';
 import Profile from './pages/Profile';
 
@@ -33,6 +34,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/categories" element={<Categories />} />
+            <Route path="/budgets" element={<Budgets />} />
             <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>

@@ -109,7 +109,7 @@ const getTransactions = async (
         `,
         values
     );
-    const totalCount = countResult[0].total;
+    const totalCount = Number( countResult[0].total );
 
     const [transactions] = await connection.query(
         `
@@ -231,44 +231,6 @@ const deleteTransaction = async (
     return result.affectedRows;
 };
 
-
-const sortTransaction = async (
-    userId,
-    sortParams,
-    connection
-) => {
-
-
-    const whereStatement="";
-
-    for (sortParam in sortParams){
-        whereStatement.push(`${sortParam} = ?`).join(" AND ")
-    }
-    whereStatement.push(`AND user_id = ?`)
-
-    const [result] = await connection.query(
-        `
-        SELECT
-            c.name,
-            p.name,
-            t.amount,
-            t.transaction_date,
-            t.note
-        FROM
-            transactions t
-            LEFT JOIN categories c
-                ON t.category_id=c.id
-            LEFT JOIN payment_modes p
-                ON t.payment_mode_id=p.id
-        WHERE
-            ${whereStatement}
-        
-            
-
-        `,
-    )
-
-};
 
 
 module.exports = {

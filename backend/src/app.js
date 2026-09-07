@@ -13,6 +13,9 @@ const catageryRoutes = require('./routes/categoryRoutes');
 const paymentModeRoutes = require("./routes/paymentModeRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
 const statisticsRoutes = require("./routes/statisticsRoutes");
+const budgetRoutes = require("./routes/budgetRoutes");
+const notificationRoutes =require("./routes/notificationRoutes");
+const recurringTransactionRoutes = require("./routes/recurringTransactionRoutes")
 
 const app = express();
 
@@ -41,6 +44,12 @@ app.use("/api/payment-modes", paymentModeRoutes);
 app.use("/transactions", transactionRoutes);
 
 app.use("/statistics", statisticsRoutes);
+
+app.use("/budgets", budgetRoutes);
+
+app.use("/notifications", notificationRoutes );
+
+app.use("/recurring-transactions", recurringTransactionRoutes );
 
 app.use(globalErrorHandler);
 

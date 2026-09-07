@@ -7,7 +7,7 @@ import { User, Mail, Phone, LogOut, Moon, Sun } from 'lucide-react';
 
 export default function Profile() {
   const { user, updateProfile, logout } = useAuth();
-  const { isDarkMode, toggleTheme } = useTheme();
+  
   
   const [formData, setFormData] = useState({
     user_name: user?.user_name || '',
@@ -97,14 +97,7 @@ export default function Profile() {
       </div>
 
       <div className="flex flex-col items-start gap-4 px-4 mt-6 border-t border-border-main pt-6">
-        <button 
-          onClick={toggleTheme}
-          type="button"
-          className="flex items-center gap-2 text-text-main hover:opacity-80 transition-opacity py-2 font-semibold"
-        >
-          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />} 
-          {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-        </button>
+
 
         <Link 
           to="/forgot-password"
