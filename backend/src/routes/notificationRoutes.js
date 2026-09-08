@@ -2,6 +2,10 @@ const express = require('express');
 
 const router = express.Router();
 
+const { protect } = require("../middlewares/authMiddleware")
+
+const notificationController = require('../controllers/notificationController');
+
 
 router.get("/", protect, notificationController.getNotifications);
 
@@ -28,3 +32,5 @@ router.delete(
     protect,
     notificationController.deleteNotification
 );
+
+module.exports = router;

@@ -60,15 +60,11 @@ const getRecurringTransactions = async (
             r.created_at,
             r.updated_at
         FROM recurring_transactions r
-
         JOIN categories c
             ON r.category_id = c.id
-
         JOIN payment_modes p
             ON r.payment_mode_id = p.id
-
         WHERE r.user_id = ?
-
         ORDER BY r.next_occurrence_date ASC
         `,
         [userId]
@@ -101,7 +97,7 @@ const findRecurringTransactionById = async (
         [id, userId]
     );
 
-    return result[0];
+    return result[0] || null;
 };
 
 
@@ -170,11 +166,18 @@ const getDueRecurringTransactions = async (
 
     const [result] = await connection.query(
         `
-        SELECT *
-        FROM recurring_transactions
-        WHERE is_active = TRUE
-        AND next_occurrence_date <= CURDATE()
-        ORDER BY next_occurrence_date ASC
+        SELECT
+            r.*,
+            c.name AS category_name,
+            p.name AS payment_mode_name
+        FROM recurring_transactions r
+        JOIN categories c
+            ON r.category_id = c.id
+        JOIN payment_modes p
+            ON r.payment_mode_id = p.id
+        WHERE r.is_active = 1
+        AND r.next_occurrence_date <= CURDATE()
+        ORDER BY r.next_occurrence_date ASC
         `
     );
 
@@ -182,6 +185,8 @@ const getDueRecurringTransactions = async (
 };
 
 
+
+// reccuring_transaction_occurance table
 const createOccurrence = async (
     recurringTransactionId,
     transactionId,
@@ -230,31 +235,52 @@ const findOccurrence = async (
         ]
     );
 
-    return result[0];
+    return result[0] || null;
 };
 
 
 const updateNextOccurrenceDate = async (
     id,
     nextDate,
-    isActive,
     connection = db
 ) => {
 
     await connection.query(
         `
         UPDATE recurring_transactions
-        SET
-            next_occurrence_date = ?,
-            is_active = ?
+        SET next_occurrence_date = ?
         WHERE id = ?
         `,
         [
             nextDate,
-            isActive,
             id
         ]
     );
+};
+
+
+const setRecurringTransactionStatus = async (
+    id,
+    userId,
+    isActive,
+    connection = db
+) => {
+
+    const [result] = await connection.query(
+        `
+        UPDATE recurring_transactions
+        SET is_active = ?
+        WHERE id = ?
+        AND user_id = ?
+        `,
+        [
+            isActive,
+            id,
+            userId
+        ]
+    );
+
+    return result.affectedRows > 0;
 };
 
 
@@ -267,5 +293,6 @@ module.exports = {
     getDueRecurringTransactions,
     createOccurrence,
     findOccurrence,
-    updateNextOccurrenceDate
+    updateNextOccurrenceDate,
+    setRecurringTransactionStatus
 };

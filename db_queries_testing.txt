@@ -1,0 +1,302 @@
+-- =========================================================
+-- PERSONAL FINANCE AUDIT DATA
+-- ALL DATA BELONGS TO USER ID 5
+-- =========================================================
+
+
+-- =========================================================
+-- 1. TRANSACTIONS
+-- =========================================================
+
+-- Income
+INSERT INTO transactions
+(
+    user_id,
+    category_id,
+    payment_mode_id,
+    amount,
+    transaction_date,
+    note
+)
+VALUES
+(5, 7, 5, 50000.00, '2026-09-01 09:00:00', 'September salary');
+
+
+-- Normal expense
+INSERT INTO transactions
+(
+    user_id,
+    category_id,
+    payment_mode_id,
+    amount,
+    transaction_date,
+    note
+)
+VALUES
+(5, 5, 1, 2500.00, '2026-09-02 12:00:00', 'Groceries');
+
+
+-- Travel expense
+INSERT INTO transactions
+(
+    user_id,
+    category_id,
+    payment_mode_id,
+    amount,
+    transaction_date,
+    note
+)
+VALUES
+(5, 10, 2, 4500.00, '2026-09-03 18:00:00', 'Travel expense');
+
+
+-- Shopping expense
+INSERT INTO transactions
+(
+    user_id,
+    category_id,
+    payment_mode_id,
+    amount,
+    transaction_date,
+    note
+)
+VALUES
+(5, 12, 3, 3000.00, '2026-09-05 15:00:00', 'Shopping');
+
+
+-- Entertainment expense
+INSERT INTO transactions
+(
+    user_id,
+    category_id,
+    payment_mode_id,
+    amount,
+    transaction_date,
+    note
+)
+VALUES
+(5, 14, 2, 1000.00, '2026-09-06 20:00:00', 'Entertainment');
+
+
+-- Another expense for statistics
+INSERT INTO transactions
+(
+    user_id,
+    category_id,
+    payment_mode_id,
+    amount,
+    transaction_date,
+    note
+)
+VALUES
+(5, 1, 1, 1500.00, '2026-09-07 10:00:00', 'Hotel expense');
+
+
+-- Today's expense
+INSERT INTO transactions
+(
+    user_id,
+    category_id,
+    payment_mode_id,
+    amount,
+    transaction_date,
+    note
+)
+VALUES
+(5, 5, 1, 750.00, '2026-09-08 13:00:00', 'Today grocery');
+
+
+-- =========================================================
+-- 2. CATEGORY BUDGETS
+-- =========================================================
+
+-- Food budget
+-- Existing food expense = 2500 + 750 = 3250
+-- Budget = 4000
+-- Usage = 81.25% => NEAR LIMIT
+INSERT INTO budgets
+(
+    user_id,
+    category_id,
+    amount,
+    budget_month,
+    budget_year
+)
+VALUES
+(5, 5, 4000.00, 9, 2026);
+
+
+-- Travel budget
+-- Existing travel expense = 4500
+-- Budget = 4000
+-- Usage = 112.5% => EXCEEDED
+INSERT INTO budgets
+(
+    user_id,
+    category_id,
+    amount,
+    budget_month,
+    budget_year
+)
+VALUES
+(5, 10, 4000.00, 9, 2026);
+
+
+-- Shopping budget
+-- Existing shopping expense = 3000
+-- Budget = 10000
+-- Usage = 30% => NORMAL
+INSERT INTO budgets
+(
+    user_id,
+    category_id,
+    amount,
+    budget_month,
+    budget_year
+)
+VALUES
+(5, 12, 10000.00, 9, 2026);
+
+
+-- =========================================================
+-- 3. RECURRING TRANSACTION - DUE TODAY
+-- =========================================================
+
+INSERT INTO recurring_transactions
+(
+    user_id,
+    category_id,
+    payment_mode_id,
+    amount,
+    frequency,
+    start_date,
+    next_occurrence_date,
+    note,
+    is_active
+)
+VALUES
+(
+    5,
+    1,
+    1,
+    5000.00,
+    'monthly',
+    '2026-08-08',
+    '2026-09-08',
+    'Monthly hotel/rent style bill',
+    1
+);
+
+
+-- =========================================================
+-- 4. RECURRING TRANSACTION - FUTURE
+-- =========================================================
+
+INSERT INTO recurring_transactions
+(
+    user_id,
+    category_id,
+    payment_mode_id,
+    amount,
+    frequency,
+    start_date,
+    next_occurrence_date,
+    note,
+    is_active
+)
+VALUES
+(
+    5,
+    10,
+    2,
+    3000.00,
+    'monthly',
+    '2026-09-15',
+    '2026-09-15',
+    'Future monthly travel bill',
+    1
+);
+
+
+-- =========================================================
+-- 5. RECURRING TRANSACTION - INACTIVE
+-- =========================================================
+
+INSERT INTO recurring_transactions
+(
+    user_id,
+    category_id,
+    payment_mode_id,
+    amount,
+    frequency,
+    start_date,
+    next_occurrence_date,
+    note,
+    is_active
+)
+VALUES
+(
+    5,
+    12,
+    3,
+    2000.00,
+    'monthly',
+    '2026-09-01',
+    '2026-09-08',
+    'Paused shopping subscription',
+    0
+);
+
+
+-- =========================================================
+-- 6. NOTIFICATIONS
+-- =========================================================
+
+-- =========================================================
+-- 6. NOTIFICATIONS
+-- =========================================================
+
+INSERT INTO notifications
+(
+    user_id,
+    type,
+    title,
+    message,
+    budget_id,
+    budget_month,
+    budget_year,
+    is_read
+)
+VALUES
+(
+    5,
+    'budget_near_limit',
+    'Budget Almost Reached',
+    'Your Food budget has reached more than 80% of its limit.',
+    3,
+    9,
+    2026,
+    0
+),
+
+(
+    5,
+    'budget_exceeded',
+    'Budget Exceeded',
+    'Your Travel budget has exceeded its monthly limit.',
+    4,
+    9,
+    2026,
+    0
+),
+
+(
+    5,
+    'budget_near_limit',
+    'Budget Warning',
+    'Your Shopping budget is being used normally.',
+    5,
+    9,
+    2026,
+    1
+);

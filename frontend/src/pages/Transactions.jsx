@@ -198,6 +198,30 @@ export default function Transactions() {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
+    
+    let hasFilters = false;
+    if (params.has('categoryId')) {
+      setFilterCategoryId(params.get('categoryId'));
+      hasFilters = true;
+    }
+    
+    if (params.has('startDate')) {
+      setStartDate(params.get('startDate'));
+      hasFilters = true;
+    }
+    
+    if (params.has('endDate')) {
+      setEndDate(params.get('endDate'));
+      hasFilters = true;
+    }
+    
+    if (hasFilters) {
+      // Force tab to all so expenses/income from that category show up correctly
+      setActiveTab('all');
+      // Clean up URL so refresh doesn't trigger it again
+      navigate('/transactions', { replace: true });
+    }
+
     if (params.get('action') === 'quickAdd') {
       const type = params.get('type');
       if (type === 'income' || type === 'expense') {
@@ -496,7 +520,7 @@ export default function Transactions() {
                       )}
                     </div>
                     <p className="text-sm text-text-muted font-medium truncate">
-                      {new Date(t.transaction_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
+                      {new Date(t.transaction_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'})}
                       {t.note && <span className="text-text-muted/60 ml-1.5 font-normal truncate">· {t.note}</span>}
                     </p>
                   </div>

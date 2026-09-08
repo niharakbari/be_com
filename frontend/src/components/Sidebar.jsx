@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, List, FolderHeart, Settings, Target } from 'lucide-react';
+import { Home, List, FolderHeart, Settings, Target, Repeat } from 'lucide-react';
 
 export default function Sidebar({ onClose }) {
   const location = useLocation();
@@ -8,6 +8,7 @@ export default function Sidebar({ onClose }) {
   const navItems = [
     { name: 'Home', path: '/', icon: Home },
     { name: 'Transactions', path: '/transactions', icon: List },
+    { name: 'Recurring', path: '/recurring', icon: Repeat },
         { name: 'Categories', path: '/categories', icon: FolderHeart },
     { name: 'Budgets', path: '/budgets', icon: Target },
     { name: 'Settings', path: '/profile', icon: Settings },

@@ -7,6 +7,8 @@ const db = require('./config/database');
 const config = require('./config/config');
 const logger = require('./config/logger');
 
+const startRecurringTransactionJob = require("./jobs/recurringTransactionJob");
+startRecurringTransactionJob();
 
 app.listen( config.port, (err) => {
     

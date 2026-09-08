@@ -3,8 +3,22 @@ import { Target, Plus, Edit2, Trash2 } from 'lucide-react';
 import { budgetApi } from '../api/budgetApi';
 import { categoryApi } from '../api/categoryApi';
 import Modal from '../components/ui/Modal';
+import { useNavigate } from 'react-router-dom';
 
 export default function Budgets() {
+  const navigate = useNavigate();
+  
+  const handleCardClick = (b) => {
+    const y = b.budget_year;
+    const m = b.budget_month - 1;
+    const firstDay = new Date(y, m, 1);
+    const lastDay = new Date(y, m + 1, 0);
+    const startStr = new Date(firstDay.getTime() - (firstDay.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    const endStr = new Date(lastDay.getTime() - (lastDay.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    
+    navigate(`/transactions?categoryId=${b.category_id || ''}&startDate=${startStr}&endDate=${endStr}`);
+  };
+
   const [budgets, setBudgets] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,16 +146,16 @@ export default function Budgets() {
           <div className="flex-1 overflow-y-auto space-y-4 pr-2">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {budgets.map(b => (
-                <div key={b.id} className="bg-page rounded-3xl p-6 border border-border-main shadow-sm flex flex-col justify-between group">
+                <div key={b.id} onClick={() => handleCardClick(b)} className="bg-page rounded-3xl p-6 border border-border-main shadow-sm flex flex-col justify-between group cursor-pointer hover:border-btn-primary/50 transition-colors">
                   <div className="flex justify-between items-start mb-4">
                     <div className="w-12 h-12 rounded-full bg-surface flex items-center justify-center shadow-sm">
                        <Target size={24} className="text-primary" />
                     </div>
                     <div className="flex gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => openEditModal(b)} className="p-2 text-text-muted hover:text-text-main bg-surface rounded-full shadow-sm">
+                      <button onClick={(e) => { e.stopPropagation(); openEditModal(b); }} className="p-2 text-text-muted hover:text-text-main bg-surface rounded-full shadow-sm">
                         <Edit2 size={16} />
                       </button>
-                      <button onClick={() => handleDelete(b.id)} className="p-2 text-text-muted hover:text-red-500 bg-surface rounded-full shadow-sm">
+                      <button onClick={(e) => { e.stopPropagation(); handleDelete(b.id); }} className="p-2 text-text-muted hover:text-red-500 bg-surface rounded-full shadow-sm">
                         <Trash2 size={16} />
                       </button>
                     </div>

@@ -5,14 +5,16 @@ const asyncHandler =
     require("../utils/asyncHandler");
 
 
+
 const createRecurringTransaction = asyncHandler(
     async (req, res) => {
 
         const recurring =
-            await recurringTransactionService.createRecurringTransaction(
-                req.user.id,
-                req.body
-            );
+            await recurringTransactionService
+                .createRecurringTransaction(
+                    req.user.id,
+                    req.body
+                );
 
         res.status(201).json({
             success: true,
@@ -22,13 +24,15 @@ const createRecurringTransaction = asyncHandler(
 );
 
 
+
 const getRecurringTransactions = asyncHandler(
     async (req, res) => {
 
         const recurring =
-            await recurringTransactionService.getRecurringTransactions(
-                req.user.id
-            );
+            await recurringTransactionService
+                .getRecurringTransactions(
+                    req.user.id
+                );
 
         res.status(200).json({
             success: true,
@@ -36,16 +40,19 @@ const getRecurringTransactions = asyncHandler(
         });
     }
 );
+
+
 
 
 const getRecurringTransactionById = asyncHandler(
     async (req, res) => {
 
         const recurring =
-            await recurringTransactionService.getRecurringTransactionById(
-                req.params.id,
-                req.user.id
-            );
+            await recurringTransactionService
+                .getRecurringTransactionById(
+                    req.params.id,
+                    req.user.id
+                );
 
         res.status(200).json({
             success: true,
@@ -53,17 +60,19 @@ const getRecurringTransactionById = asyncHandler(
         });
     }
 );
+
 
 
 const updateRecurringTransaction = asyncHandler(
     async (req, res) => {
 
         const recurring =
-            await recurringTransactionService.updateRecurringTransaction(
-                req.params.id,
-                req.user.id,
-                req.body
-            );
+            await recurringTransactionService
+                .updateRecurringTransaction(
+                    req.params.id,
+                    req.user.id,
+                    req.body
+                );
 
         res.status(200).json({
             success: true,
@@ -73,17 +82,57 @@ const updateRecurringTransaction = asyncHandler(
 );
 
 
+
 const deleteRecurringTransaction = asyncHandler(
     async (req, res) => {
 
-        await recurringTransactionService.deleteRecurringTransaction(
-            req.params.id,
-            req.user.id
-        );
+        await recurringTransactionService
+            .deleteRecurringTransaction(
+                req.params.id,
+                req.user.id
+            );
 
         res.status(200).json({
             success: true,
             message: "Recurring transaction deleted"
+        });
+    }
+);
+
+
+
+const activate = asyncHandler(
+    async (req, res) => {
+
+        const recurring =
+            await recurringTransactionService
+                .activateRecurringTransaction(
+                    req.user.id,
+                    req.params.id
+                );
+
+        res.status(200).json({
+            success: true,
+            data: recurring
+        });
+    }
+);
+
+
+
+const deactivate = asyncHandler(
+    async (req, res) => {
+
+        const recurring =
+            await recurringTransactionService
+                .deactivateRecurringTransaction(
+                    req.user.id,
+                    req.params.id
+                );
+
+        res.status(200).json({
+            success: true,
+            data: recurring
         });
     }
 );
@@ -94,5 +143,7 @@ module.exports = {
     getRecurringTransactions,
     getRecurringTransactionById,
     updateRecurringTransaction,
-    deleteRecurringTransaction
+    deleteRecurringTransaction,
+    activate,
+    deactivate
 };

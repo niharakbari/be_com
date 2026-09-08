@@ -1,17 +1,33 @@
 import { useState, useEffect } from 'react';
-import { ArrowUpRight, ArrowDownRight, List, FolderHeart, Calendar, BarChart2 } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, List, FolderHeart, Calendar, BarChart2, Target, Repeat } from 'lucide-react';
 import { transactionApi } from '../api/transactionApi';
 import { statisticsApi } from '../api/statisticsApi';
+import { budgetApi } from '../api/budgetApi';
+import { recurringTransactionApi } from '../api/recurringTransactionApi';
 import { categoryApi } from '../api/categoryApi';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import CategorySelect from '../components/ui/CategorySelect';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+  
+  const handleBudgetClick = (b) => {
+    const y = b.budget_year;
+    const m = b.budget_month - 1;
+    const firstDay = new Date(y, m, 1);
+    const lastDay = new Date(y, m + 1, 0);
+    const startStr = new Date(firstDay.getTime() - (firstDay.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    const endStr = new Date(lastDay.getTime() - (lastDay.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    
+    navigate(`/transactions?categoryId=${b.category_id || ''}&startDate=${startStr}&endDate=${endStr}`);
+  };
+
   const [loading, setLoading] = useState(true);
   
   // Dashboard Overall Stats
   const [overallStats, setOverallStats] = useState({ totalIncome: 0, totalExpense: 0, netBalance: 0 });
   const [todayStats, setTodayStats] = useState({ totalIncome: 0, totalExpense: 0 });
+  const [monthStats, setMonthStats] = useState({ totalIncome: 0, totalExpense: 0, netBalance: 0 });
   
   // Chart Stats
   const [chartView, setChartView] = useState('Weekly');
@@ -20,25 +36,48 @@ export default function Dashboard() {
   
   // Transactions
   const [transactions, setTransactions] = useState([]);
+  const [budgets, setBudgets] = useState([]);
+  const [recurrings, setRecurrings] = useState([]);
   
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        const today = new Date().toISOString().split('T')[0];
+        const localDate = new Date();
+        const today = new Date(localDate.getTime() - (localDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
         
-        const [overallRes, todayRes, transRes] = await Promise.all([
+        const y = localDate.getFullYear();
+        const m = localDate.getMonth();
+        const firstDay = new Date(y, m, 1);
+        const lastDay = new Date(y, m + 1, 0);
+        const firstDayStr = new Date(firstDay.getTime() - (firstDay.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        const lastDayStr = new Date(lastDay.getTime() - (lastDay.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        
+        const [overallRes, todayRes, monthRes, transRes, budgetRes, recRes] = await Promise.all([
           statisticsApi.getStatistics().catch(() => ({ data: { data: { totalIncome: 0, totalExpense: 0, netBalance: 0 } } })),
           statisticsApi.getStatistics({ startDate: today, endDate: today }).catch(() => ({ data: { data: { totalIncome: 0, totalExpense: 0 } } })),
-          transactionApi.getAll({ limit: 5 }).catch(() => ({ data: { data: { transactions: [] } } }))
+          statisticsApi.getStatistics({ startDate: firstDayStr, endDate: lastDayStr }).catch(() => ({ data: { data: { totalIncome: 0, totalExpense: 0, netBalance: 0 } } })),
+          transactionApi.getAll({ limit: 5 }).catch(() => ({ data: { data: { transactions: [] } } })),
+          budgetApi.getUsage().catch(() => ({ data: { data: [] } })),
+          recurringTransactionApi.getAll().catch(() => ({ data: { data: [] } }))
         ]);
         
         setOverallStats(overallRes.data?.data || { totalIncome: 0, totalExpense: 0, netBalance: 0 });
         setTodayStats(todayRes.data?.data || { totalIncome: 0, totalExpense: 0 });
+        setMonthStats(monthRes.data?.data || { totalIncome: 0, totalExpense: 0, netBalance: 0 });
         
         const transData = transRes.data?.data || {};
         setTransactions(Array.isArray(transData) ? transData.slice(0, 5) : (transData.transactions || []).slice(0, 5));
+        
+        const bData = budgetRes.data?.data || [];
+        bData.sort((a,b) => b.usagePercentage - a.usagePercentage);
+        setBudgets(bData.slice(0, 2));
+        
+        const rData = recRes.data?.data || [];
+        const activeR = rData.filter(r => r.is_active && r.next_occurrence_date);
+        activeR.sort((a,b) => new Date(a.next_occurrence_date) - new Date(b.next_occurrence_date));
+        setRecurrings(activeR.slice(0, 2));
       } catch (error) {
         console.error(error);
       } finally {
@@ -195,7 +234,7 @@ export default function Dashboard() {
                         )}
                       </div>
                       <p className="text-xs sm:text-sm text-text-muted font-medium truncate">
-                        {new Date(t.transaction_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
+                        {new Date(t.transaction_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'})}
                         {t.note && <span className="text-text-muted ml-1.5 font-normal truncate">· {t.note}</span>}
                       </p>
                     </div>
@@ -247,55 +286,76 @@ export default function Dashboard() {
            </div>
         </div>
 
-        {/* Statistics Chart */}
-        <div className="bg-surface rounded-[32px] p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-border-main flex-1 flex flex-col overflow-hidden min-h-[500px]">
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-            <h3 className="text-2xl font-bold text-text-main">Statistics</h3>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="bg-page rounded-full p-1 flex">
-                <button onClick={() => setChartView('Weekly')} className={`text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-full transition-colors ${chartView === 'Weekly' ? 'bg-btn-primary text-btn-text' : 'text-text-main hover:bg-page'}`}>Weekly</button>
-                <button onClick={() => setChartView('Monthly')} className={`text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-full transition-colors ${chartView === 'Monthly' ? 'bg-btn-primary text-btn-text' : 'text-text-main hover:bg-page'}`}>Monthly</button>
-              </div>
-              <button className="w-8 h-8 sm:w-10 sm:h-10 border-2 border-border-main rounded-full flex items-center justify-center text-text-muted">
-                <Calendar size={16} />
-              </button>
-              <button className="w-8 h-8 sm:w-10 sm:h-10 bg-btn-primary rounded-full flex items-center justify-center text-btn-text">
-                <BarChart2 size={16} />
-              </button>
-            </div>
+        {/* Financial Overview */}
+        <div className="bg-surface rounded-[32px] p-6 sm:p-8 shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-border-main flex-1 flex flex-col overflow-hidden">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-2xl font-bold text-text-main">Financial Overview</h3>
           </div>
           
-          <div className="flex-1 flex flex-col justify-end gap-2 h-[200px] mb-8 border-b-2 border-border-main overflow-x-auto relative">
-             {chartLoading && (
-               <div className="absolute inset-0 bg-surface/50 backdrop-blur-sm z-10 flex items-center justify-center">
-                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="bg-page border border-border-main rounded-2xl p-4 mb-8">
+             <p className="text-xs font-semibold text-text-muted mb-3 uppercase tracking-wider">This Month</p>
+             <div className="flex justify-between items-end mb-2">
+               <div>
+                 <p className="text-[10px] sm:text-xs font-bold text-text-muted mb-0.5">Income</p>
+                 <p className="text-sm font-bold text-green-500">₹{Number(monthStats.totalIncome).toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
                </div>
-             )}
-             <div className="flex justify-between items-end h-full px-2 min-w-[300px]">
-               {chartData.map((day, idx) => (
-                 <div key={idx} className="flex gap-1 items-end h-full w-full justify-center group relative">
-                    <div className="w-2 sm:w-4 bg-btn-primary rounded-t-sm transition-all duration-300" style={{height: `${day.expensePct}%`}}></div>
-                    <div className="w-2 sm:w-4 bg-[var(--color-primary)] rounded-t-sm transition-all duration-300" style={{height: `${day.incomePct}%`}}></div>
-                    
-                    {/* Tooltip on hover */}
-                    <div className="opacity-0 group-hover:opacity-100 absolute bottom-full mb-2 bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-20 pointer-events-none transition-opacity">
-                      Income: ₹ {day.rawIncome}<br/>
-                      Expense: ₹ {day.rawExpense}
+               <div className="text-right">
+                 <p className="text-[10px] sm:text-xs font-bold text-text-muted mb-0.5">Expense</p>
+                 <p className="text-sm font-bold text-text-main">₹{Number(monthStats.totalExpense).toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+               </div>
+             </div>
+             <div className="pt-2 mt-2 border-t border-border-main flex justify-between items-center">
+                <span className="text-xs font-bold text-text-muted">Net Remaining</span>
+                <span className={`font-bold ${monthStats.netBalance < 0 ? 'text-red-500' : 'text-text-main'}`}>
+                  {monthStats.netBalance < 0 ? '-' : ''}₹{Math.abs(Number(monthStats.netBalance)).toLocaleString(undefined, {minimumFractionDigits: 2})}
+                </span>
+             </div>
+          </div>
+          
+          <div className="flex-1 flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="text-lg font-bold text-text-main">Active Budgets</h4>
+              {budgets.length > 0 && <Link to="/budgets" className="text-xs font-semibold text-btn-primary hover:underline">View All</Link>}
+            </div>
+            
+            {budgets.length > 0 ? (
+              <div className="space-y-5 overflow-y-auto pr-2 pb-4">
+                {budgets.slice(0, 4).map(b => (
+                  <div key={b.id} onClick={() => handleBudgetClick(b)} className="group cursor-pointer hover:bg-page p-3 -mx-3 rounded-2xl transition-colors">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="font-bold text-text-main truncate pr-2">{b.category_name || 'Overall'}</span>
+                      <span className={`font-bold ${b.status === 'exceeded' ? 'text-red-500' : b.status === 'near_limit' ? 'text-amber-500' : 'text-text-muted'}`}>
+                        {Number(b.usagePercentage).toFixed(0)}%
+                      </span>
                     </div>
-                 </div>
-               ))}
-             </div>
-             <div className="flex justify-between text-[10px] sm:text-xs font-semibold text-text-muted px-2 mt-2 min-w-[300px]">
-               {chartView === 'Weekly' ? (
-                 <>
-                   <span className="text-center w-full">Mon</span><span className="text-center w-full">Tue</span><span className="text-center w-full">Wed</span><span className="text-center w-full">Thu</span><span className="text-center w-full">Fri</span><span className="text-center w-full">Sat</span><span className="text-center w-full">Sun</span>
-                 </>
-               ) : (
-                 <>
-                   {chartData.map((_, i) => (i % 5 === 0 ? <span key={i} className="text-center w-full">{i + 1}</span> : <span key={i} className="w-full"></span>))}
-                 </>
-               )}
-             </div>
+                    <div className="flex justify-between items-end mb-2">
+                       <span className="text-[10px] font-bold text-text-muted uppercase">Limit: ₹{Number(b.amount).toLocaleString()}</span>
+                       <span className={`text-[10px] font-bold uppercase tracking-wider ${b.status === 'exceeded' ? 'text-red-500' : b.status === 'near_limit' ? 'text-amber-500' : 'text-text-main'}`}>
+                         {b.status === 'exceeded' ? 'Exceeded' : b.status === 'near_limit' ? 'Near Limit' : 'Normal'}
+                       </span>
+                    </div>
+                    <div className="w-full bg-page rounded-full h-2 overflow-hidden border border-border-main relative">
+                      <div 
+                        className={`absolute top-0 left-0 h-2 rounded-full transition-all duration-300 ${b.status === 'exceeded' ? 'bg-red-500' : b.status === 'near_limit' ? 'bg-amber-500' : 'bg-btn-primary'}`} 
+                        style={{ width: `${Math.min(Number(b.usagePercentage || 0), 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                ))}
+                
+                {budgets.length > 4 && (
+                  <div className="text-center pt-2">
+                     <Link to="/budgets" className="text-xs font-bold text-text-muted hover:text-text-main transition-colors">+{budgets.length - 4} more budgets</Link>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center text-text-muted text-center py-6 bg-page rounded-2xl border border-border-main/50">
+                 <p className="text-sm font-medium mb-1">No budgets found.</p>
+                 <p className="text-xs mb-3">Set limits to track your spending.</p>
+                 <Link to="/budgets" className="text-xs font-semibold px-4 py-2 bg-surface border border-border-main rounded-full hover:text-text-main transition-colors">Create Budget</Link>
+              </div>
+            )}
           </div>
           
           {/* Today's summary cards */}
