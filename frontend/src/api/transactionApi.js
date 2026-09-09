@@ -1,6 +1,7 @@
 import api from './axios';
 
 export const transactionApi = {
+  export: (params) => api.get('/transactions/export', { params, responseType: 'blob' }),
   getAll: (params) => api.get('/transactions', { params }), // supports search, filter, pagination
   getSummary: (params) => api.get('/transactions/summary', { params }), // for dashboard stats
   getById: (id) => api.get(`/transactions/${id}`),

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { authApi } from '../api/authApi';
-import { User, Mail, Phone, LogOut, Moon, Sun } from 'lucide-react';
+import { User, Mail, Phone, LogOut, Moon, Sun, Settings, Calendar, Clock, CheckCircle2 } from 'lucide-react';
+import { settingsApi } from '../api/settingsApi';
 
 export default function Profile() {
-  const { user, updateProfile, logout } = useAuth();
+  const navigate = useNavigate();
+  const { user, updateProfile, logout, settings, updateUserSettings } = useAuth();
   
   
   const [formData, setFormData] = useState({
@@ -34,6 +36,23 @@ export default function Profile() {
     } finally {
       setLoading(false);
     }
+  };
+
+
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsMessage, setSettingsMessage] = useState('');
+
+  const handleBudgetModeChange = async (mode) => {
+    setSettingsLoading(true);
+    setSettingsMessage('');
+    try {
+      await updateUserSettings({ budget_mode: mode });
+      setSettingsMessage('Budget preference saved.');
+      setTimeout(() => setSettingsMessage(''), 3000);
+    } catch (err) {
+      console.error(err);
+    }
+    setSettingsLoading(false);
   };
 
   return (
@@ -96,15 +115,19 @@ export default function Profile() {
         </form>
       </div>
 
+
       <div className="flex flex-col items-start gap-4 px-4 mt-6 border-t border-border-main pt-6">
 
 
-        <Link 
-          to="/forgot-password"
-          className="flex items-center gap-2 text-text-main hover:opacity-80 transition-opacity py-2 font-semibold"
+        <button 
+          onClick={() => {
+            logout();
+            navigate('/forgot-password');
+          }}
+          className="flex items-center gap-2 text-text-main hover:opacity-80 transition-opacity py-2 font-semibold w-full text-left"
         >
           Reset Password
-        </Link>
+        </button>
         <button 
           onClick={logout}
           className="flex items-center gap-2 text-red-500 font-semibold hover:text-red-600 transition-colors py-2"

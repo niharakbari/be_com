@@ -252,3 +252,118 @@ CREATE TABLE notifications (
     INDEX idx_notifications_created
         (user_id, created_at)
 );
+
+CREATE TABLE monthly_savings (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+
+    saving_month TINYINT UNSIGNED NOT NULL,
+    saving_year SMALLINT UNSIGNED NOT NULL,
+
+    savings_goal DECIMAL(15,2) NOT NULL,
+    actual_saving DECIMAL(15,2) NOT NULL DEFAULT 0,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_monthly_savings_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT chk_savings_goal
+        CHECK (savings_goal > 0),
+
+    CONSTRAINT chk_actual_saving
+        CHECK (actual_saving >= 0),
+
+    CONSTRAINT chk_saving_month
+        CHECK (saving_month BETWEEN 1 AND 12),
+
+    CONSTRAINT chk_saving_year
+        CHECK (saving_year BETWEEN 2000 AND 2100),
+
+    UNIQUE KEY unique_user_saving_month (
+        user_id,
+        saving_month,
+        saving_year
+    )
+);
+
+ALTER TABLE monthly_savings
+MODIFY actual_saving DECIMAL(15,2) NULL DEFAULT NULL;
+
+CREATE TABLE be_com.user_settings (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+
+    budget_mode ENUM('monthly', 'yearly')
+        NOT NULL DEFAULT 'monthly',
+
+    onboarding_completed BOOLEAN
+        NOT NULL DEFAULT FALSE,
+
+    created_at TIMESTAMP
+        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP
+        NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_user_settings_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    UNIQUE KEY unique_user_settings (user_id)
+);
+
+CREATE TABLE yearly_budgets (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    user_id BIGINT UNSIGNED NOT NULL,
+
+    category_id BIGINT UNSIGNED DEFAULT NULL,
+
+    amount DECIMAL(15,2) NOT NULL,
+
+    budget_year SMALLINT UNSIGNED NOT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY unique_yearly_budget (
+        user_id,
+        category_id,
+        budget_year
+    ),
+
+    KEY idx_yearly_budgets_user_year (
+        user_id,
+        budget_year
+    ),
+
+    KEY fk_yearly_budgets_category (
+        category_id
+    ),
+
+    CONSTRAINT fk_yearly_budgets_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_yearly_budgets_category
+        FOREIGN KEY (category_id)
+        REFERENCES categories(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT chk_yearly_budget_amount
+        CHECK (amount > 0),
+
+    CONSTRAINT chk_yearly_budget_year
+        CHECK (budget_year BETWEEN 2000 AND 2100)
+);

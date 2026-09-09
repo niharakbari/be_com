@@ -15,7 +15,8 @@ const generateAccessToken = (user) => {
         config.jwt.accessTokenSecret,
 
         {
-            expiresIn: config.jwt.accessTokenExpiry
+            expiresIn: config.jwt.accessTokenExpiry,
+            algorithm: config.jwt.algorithm
         }
 
     );
@@ -34,7 +35,8 @@ const generateRefreshToken = (user) => {
 
         config.jwt.refreshTokenSecret,
         {
-            expiresIn: config.jwt.refreshTokenExpiry
+            expiresIn: config.jwt.refreshTokenExpiry,
+            algorithm: config.jwt.algorithm
         }
 
     );
@@ -47,7 +49,10 @@ const verifyAccessToken = (token) => {
 
     return jwt.verify(
         token,
-        config.jwt.accessTokenSecret
+        config.jwt.accessTokenSecret,
+        {
+            algorithms: [config.jwt.algorithm]
+        }
     );
 
 };
@@ -58,7 +63,10 @@ const verifyRefreshToken = (token) => {
 
     return jwt.verify(
         token,
-        config.jwt.refreshTokenSecret
+        config.jwt.refreshTokenSecret,
+        {
+            algorithms: [config.jwt.algorithm]
+        }
     );
 
 };

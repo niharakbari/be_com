@@ -10,6 +10,10 @@ const logger = require('./config/logger');
 const startRecurringTransactionJob = require("./jobs/recurringTransactionJob");
 startRecurringTransactionJob();
 
+const startMonthlySavingJob = require("./jobs/monthlySavingJob");
+
+startMonthlySavingJob();
+
 app.listen( config.port, (err) => {
     
     if(err) {

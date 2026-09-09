@@ -103,11 +103,39 @@ const getBudgetUsage = asyncHandler(
 );
 
 
+const cloneBudgets = asyncHandler(
+    async (req, res) => {
+
+        const {
+            sourceMonth,
+            sourceYear,
+            targetMonth,
+            targetYear
+        } = req.body;
+
+        const budgets =
+            await budgetService.cloneBudgets(
+                req.user.id,
+                sourceMonth,
+                sourceYear,
+                targetMonth,
+                targetYear
+            );
+
+        res.status(201).json({
+            success: true,
+            message: "Budgets cloned successfully",
+            data: budgets
+        });
+    }
+);
+
 module.exports = {
     createBudget,
     getBudgets,
     getBudgetById,
     updateBudget,
     deleteBudget,
-    getBudgetUsage
+    getBudgetUsage,
+    cloneBudgets
 };

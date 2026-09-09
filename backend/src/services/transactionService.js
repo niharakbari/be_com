@@ -253,11 +253,23 @@ const deleteTransaction = async (
     }
 };
 
+const exportTransactions = async (
+    userId,
+    queryParams = {}
+) => {
+
+    return await transactionModel.getTransactionsForExport(
+        userId,
+        queryParams
+    );
+
+};
 
 module.exports = {
     createTransaction,
     getTransactions,
     getTransactionById,
     updateTransaction,
-    deleteTransaction
+    deleteTransaction,
+    exportTransactions
 };

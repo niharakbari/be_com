@@ -15,7 +15,10 @@ const transactionRoutes = require("./routes/transactionRoutes");
 const statisticsRoutes = require("./routes/statisticsRoutes");
 const budgetRoutes = require("./routes/budgetRoutes");
 const notificationRoutes =require("./routes/notificationRoutes");
-const recurringTransactionRoutes = require("./routes/recurringTransactionRoutes")
+const recurringTransactionRoutes = require("./routes/recurringTransactionRoutes");
+const monthlySavingRoutes = require("./routes/monthlySavingRoutes");
+const userSettingsRoutes = require("./routes/userSettingsRoutes");
+const yearlyBudgetRoutes = require("./routes/yearlyBudgetRoutes");
 
 const app = express();
 
@@ -50,6 +53,12 @@ app.use("/budgets", budgetRoutes);
 app.use("/notifications", notificationRoutes );
 
 app.use("/recurring-transactions", recurringTransactionRoutes );
+
+app.use("/monthly-savings", monthlySavingRoutes );
+
+app.use("/user-settings", userSettingsRoutes);
+
+app.use("/yearly-budgets", yearlyBudgetRoutes);
 
 app.use(globalErrorHandler);
 

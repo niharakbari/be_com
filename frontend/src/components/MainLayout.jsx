@@ -3,12 +3,41 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { Menu } from 'lucide-react';
+import Onboarding from './Onboarding';
+import { useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 export default function MainLayout() {
+  const { settings, updateUserSettings } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Only show onboarding if settings explicitly says false
+  const [showOnboarding, setShowOnboarding] = useState(
+    settings ? !settings.onboarding_completed : false
+  );
+
+  useEffect(() => {
+    if (settings && !settings.onboarding_completed) {
+      setShowOnboarding(true);
+    } else {
+      setShowOnboarding(false);
+    }
+  }, [settings]);
+
+  const handleOnboardingComplete = async () => {
+    try {
+      await updateUserSettings({ onboarding_completed: true });
+      setShowOnboarding(false);
+    } catch (err) {
+      console.error('Failed to save onboarding state', err);
+      // Fallback close just in case
+      setShowOnboarding(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-page flex overflow-hidden relative text-text-main">
+      {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
       {/* Mobile Sidebar Overlay */}
       {mobileMenuOpen && (
         <div 

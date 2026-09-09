@@ -9,11 +9,16 @@ const {
 const recurringTransactionController =
     require("../controllers/recurringTransactionController");
 
+const { validate } = require("../middlewares/validationMiddleware")
+const { createRecurringTransactionValidation, updateRecurringTransactionValidation } 
+    = require("../validations/recurringTransactionValidation");
+
 
 // Create
 router.post(
     "/",
     protect,
+    validate(createRecurringTransactionValidation),
     recurringTransactionController.createRecurringTransaction
 );
 
@@ -38,6 +43,7 @@ router.get(
 router.patch(
     "/:id",
     protect,
+    validate(updateRecurringTransactionValidation),
     recurringTransactionController.updateRecurringTransaction
 );
 

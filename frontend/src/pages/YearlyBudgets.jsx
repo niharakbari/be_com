@@ -1,20 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Target, Plus, Edit2, Trash2, Copy, ChevronLeft, ChevronRight } from 'lucide-react';
-import { budgetApi } from '../api/budgetApi';
+import { Target, Plus, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { yearlyBudgetApi } from '../api/yearlyBudgetApi';
 import { categoryApi } from '../api/categoryApi';
 import Modal from '../components/ui/Modal';
 import { useNavigate } from 'react-router-dom';
 
-export default function Budgets() {
+export default function YearlyBudgets() {
   const navigate = useNavigate();
   
   const handleCardClick = (b) => {
     const y = b.budget_year;
-    const m = b.budget_month - 1;
-    const firstDay = new Date(y, m, 1);
-    const lastDay = new Date(y, m + 1, 0);
-    const startStr = new Date(firstDay.getTime() - (firstDay.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-    const endStr = new Date(lastDay.getTime() - (lastDay.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    const startStr = `${y}-01-01`;
+    const endStr = `${y}-12-31`;
     
     navigate(`/transactions?categoryId=${b.category_id || ''}&startDate=${startStr}&endDate=${endStr}`);
   };
@@ -35,84 +32,14 @@ export default function Budgets() {
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState('');
   
-  const [selectedDate, setSelectedDate] = useState({
-    month: new Date().getMonth() + 1,
-    year: new Date().getFullYear()
-  });
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   
-  const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
-  const [cloneData, setCloneData] = useState({
-    sourceMonth: new Date().getMonth() === 0 ? 12 : new Date().getMonth(),
-    sourceYear: new Date().getMonth() === 0 ? new Date().getFullYear() - 1 : new Date().getFullYear(),
-    targetMonth: new Date().getMonth() + 1,
-    targetYear: new Date().getFullYear()
-  });
-  const [cloneLoading, setCloneLoading] = useState(false);
-  const [cloneError, setCloneError] = useState('');
-
-  const openCloneModal = () => {
-    setCloneError('');
-    let prevM = selectedDate.month - 1;
-    let prevY = selectedDate.year;
-    if (prevM < 1) { prevM = 12; prevY -= 1; }
-    
-    setCloneData({
-      sourceMonth: prevM,
-      sourceYear: prevY,
-      targetMonth: selectedDate.month,
-      targetYear: selectedDate.year
-    });
-    setIsCloneModalOpen(true);
-  };
-
-  const handleClone = async (e) => {
-    e.preventDefault();
-    setCloneLoading(true);
-    setCloneError('');
-    try {
-      await budgetApi.clone({
-        sourceMonth: Number(cloneData.sourceMonth),
-        sourceYear: Number(cloneData.sourceYear),
-        targetMonth: Number(cloneData.targetMonth),
-        targetYear: Number(cloneData.targetYear)
-      });
-      setIsCloneModalOpen(false);
-      fetchMetadata();
-    } catch (err) {
-      setCloneError(err.response?.data?.message || 'Failed to clone budgets');
-    } finally {
-      setCloneLoading(false);
-    }
-  };
-
-  const fetchMetadata = async () => {
-    try {
-      setLoading(true);
-      const [budgetsRes, categoriesRes] = await Promise.all([
-        budgetApi.getUsage().catch(() => ({ data: { data: [] } })),
-        categoryApi.getAll().catch(() => ({ data: { data: [] } }))
-      ]);
-      setBudgets(budgetsRes.data?.data || []);
-      // Only allow expense categories for budgeting
-      setCategories((categoriesRes.data?.data || []).filter(c => c.type === 'expense'));
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchMetadata();
-  }, []);
-
   const openAddModal = () => {
     setEditingBudget(null);
     setFormData({
       category_id: '',
       amount: '',
-      budget_month: selectedDate.month,
-      budget_year: selectedDate.year
+      budget_year: selectedYear
     });
     setFormError('');
     setIsModalOpen(true);
@@ -123,7 +50,6 @@ export default function Budgets() {
     setFormData({
       category_id: budget.category_id || '',
       amount: budget.amount,
-      budget_month: budget.budget_month,
       budget_year: budget.budget_year
     });
     setFormError('');
@@ -133,7 +59,7 @@ export default function Budgets() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this budget?")) return;
     try {
-      await budgetApi.delete(id);
+      await yearlyBudgetApi.delete(id);
       fetchMetadata();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete budget');
@@ -149,14 +75,13 @@ export default function Budgets() {
       const payload = {
         category_id: formData.category_id ? Number(formData.category_id) : null,
         amount: Number(formData.amount),
-        budget_month: Number(formData.budget_month),
         budget_year: Number(formData.budget_year)
       };
 
       if (editingBudget) {
-        await budgetApi.update(editingBudget.id, payload);
+        await yearlyBudgetApi.update(editingBudget.id, payload);
       } else {
-        await budgetApi.create(payload);
+        await yearlyBudgetApi.create(payload);
       }
       setIsModalOpen(false);
       fetchMetadata();
@@ -174,58 +99,41 @@ export default function Budgets() {
   const currentYear = new Date().getFullYear();
   const years = Array.from(new Array(5), (_, i) => currentYear - 1 + i); // prev year to +3 years
 
-  const handlePrevMonth = () => {
-    setSelectedDate(prev => {
-      let m = prev.month - 1;
-      let y = prev.year;
-      if (m < 1) { m = 12; y -= 1; }
-      return { month: m, year: y };
-    });
+  const handlePrevYear = () => {
+    setSelectedYear(prev => prev - 1);
   };
 
-  const handleNextMonth = () => {
-    setSelectedDate(prev => {
-      let m = prev.month + 1;
-      let y = prev.year;
-      if (m > 12) { m = 1; y += 1; }
-      return { month: m, year: y };
-    });
+  const handleNextYear = () => {
+    setSelectedYear(prev => prev + 1);
   };
 
-  const displayedBudgets = budgets.filter(b => b.budget_month === selectedDate.month && b.budget_year === selectedDate.year);
+  const displayedBudgets = budgets;
 
   return (
     <div className="h-full flex flex-col">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-          <h2 className="text-3xl font-bold tracking-tight text-text-main">Budgets</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-text-main">Yearly Budgets</h2>
           
           <div className="flex items-center gap-3 bg-surface border border-border-main rounded-full px-2 py-1 shadow-sm w-fit">
-            <button onClick={handlePrevMonth} className="p-1.5 hover:bg-page rounded-full transition-colors text-text-muted hover:text-text-main">
+            <button onClick={handlePrevYear} className="p-1.5 hover:bg-page rounded-full transition-colors text-text-muted hover:text-text-main">
                <ChevronLeft size={20} />
             </button>
-            <span className="font-bold text-text-main min-w-[130px] text-center">
-              {monthNames[selectedDate.month - 1]} {selectedDate.year}
+            <span className="font-bold text-text-main min-w-[80px] text-center">
+              {selectedYear}
             </span>
-            <button onClick={handleNextMonth} className="p-1.5 hover:bg-page rounded-full transition-colors text-text-muted hover:text-text-main">
+            <button onClick={handleNextYear} className="p-1.5 hover:bg-page rounded-full transition-colors text-text-muted hover:text-text-main">
                <ChevronRight size={20} />
             </button>
           </div>
         </div>
         <div className="flex gap-2">
           <button 
-            onClick={openCloneModal}
-            className="bg-surface border border-border-main text-text-main px-4 sm:px-6 py-3 rounded-full font-semibold hover:bg-page transition-colors shadow-[0_2px_10px_rgb(0,0,0,0.02)] flex items-center gap-2"
-          >
-            <Copy size={18} />
-            <span className="hidden sm:inline">Clone Previous</span>
-          </button>
-          <button 
             onClick={openAddModal}
             className="bg-btn-primary text-btn-text px-4 sm:px-6 py-3 rounded-full font-semibold hover:bg-btn-primary-hover transition-colors shadow-[0_2px_10px_rgb(0,0,0,0.02)] flex items-center gap-2"
           >
             <Plus size={20} />
-            <span className="hidden sm:inline">New Budget</span>
+            <span className="hidden sm:inline">New Yearly Budget</span>
           </button>
         </div>
       </div>
@@ -256,7 +164,7 @@ export default function Budgets() {
                   
                   <div className="mb-2">
                     <span className="text-xs font-semibold px-2.5 py-1 bg-surface border border-border-main rounded-full text-text-muted inline-block mb-3">
-                      {monthNames[b.budget_month - 1]} {b.budget_year}
+                      {b.budget_year}
                     </span>
                     <h3 className="text-xl font-bold text-text-main mb-1 truncate">
                       {b.category_name || "Overall Budget"}
@@ -307,22 +215,15 @@ export default function Budgets() {
             <div className="w-20 h-20 bg-page rounded-full flex items-center justify-center mb-6 shadow-sm">
               <Target size={40} className="text-border-main" />
             </div>
-            <p className="text-lg font-medium">No budgets configured for {monthNames[selectedDate.month - 1]} {selectedDate.year}.</p>
-            <p className="text-sm mt-1 mb-6">Create a new budget or clone from the previous month.</p>
+            <p className="text-lg font-medium">No yearly budgets configured for {selectedYear}.</p>
+            <p className="text-sm mt-1 mb-6">Yearly budgets help you track spending across the full year.</p>
             <div className="flex flex-col sm:flex-row gap-3">
-              <button 
-                onClick={openCloneModal}
-                className="px-6 py-2.5 border border-border-main text-text-main font-semibold rounded-full hover:bg-page transition-colors flex items-center justify-center gap-2"
-              >
-                <Copy size={18} />
-                <span>Clone Previous Month</span>
-              </button>
               <button 
                 onClick={openAddModal}
                 className="px-6 py-2.5 bg-btn-primary text-btn-text font-semibold rounded-full hover:bg-btn-primary-hover transition-colors flex items-center justify-center gap-2"
               >
                 <Plus size={18} />
-                <span>Add Budget</span>
+                <span>Add Yearly Budget</span>
               </button>
             </div>
           </div>
@@ -361,31 +262,17 @@ export default function Budgets() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold mb-1.5 text-text-muted">Month</label>
-              <select 
-                className="w-full bg-page border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main appearance-none cursor-pointer h-[46px]"
-                value={formData.budget_month}
-                onChange={e => setFormData({...formData, budget_month: e.target.value})}
-              >
-                {monthNames.map((m, i) => (
-                  <option key={i} value={i + 1}>{m}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-1.5 text-text-muted">Year</label>
-              <select 
-                className="w-full bg-page border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main appearance-none cursor-pointer h-[46px]"
-                value={formData.budget_year}
-                onChange={e => setFormData({...formData, budget_year: e.target.value})}
-              >
-                {years.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1.5 text-text-muted">Year</label>
+            <select 
+              className="w-full bg-page border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main appearance-none cursor-pointer h-[46px]"
+              value={formData.budget_year}
+              onChange={e => setFormData({...formData, budget_year: e.target.value})}
+            >
+              {years.map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
           </div>
 
           <button 
@@ -398,73 +285,7 @@ export default function Budgets() {
         </form>
       </Modal>
 
-      <Modal isOpen={isCloneModalOpen} onClose={() => setIsCloneModalOpen(false)} title="Clone Budgets">
-        <form onSubmit={handleClone} className="space-y-6">
-          {cloneError && <div className="bg-red-50 text-red-500 p-3 rounded-xl text-sm font-medium">{cloneError}</div>}
-          
-          <div className="bg-page p-4 rounded-2xl border border-border-main space-y-4">
-            <h4 className="text-sm font-bold text-text-main">From (Source)</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <select 
-                className="w-full bg-surface border-none rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main appearance-none cursor-pointer"
-                value={cloneData.sourceMonth}
-                onChange={e => setCloneData({...cloneData, sourceMonth: e.target.value})}
-              >
-                {monthNames.map((m, i) => (
-                  <option key={i} value={i + 1}>{m}</option>
-                ))}
-              </select>
-              <select 
-                className="w-full bg-surface border-none rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main appearance-none cursor-pointer"
-                value={cloneData.sourceYear}
-                onChange={e => setCloneData({...cloneData, sourceYear: e.target.value})}
-              >
-                {years.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="flex justify-center -my-3 relative z-10">
-            <div className="bg-surface border border-border-main p-2 rounded-full shadow-sm text-text-muted">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-            </div>
-          </div>
-
-          <div className="bg-page p-4 rounded-2xl border border-border-main space-y-4">
-            <h4 className="text-sm font-bold text-text-main">To (Target)</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <select 
-                className="w-full bg-surface border-none rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main appearance-none cursor-pointer"
-                value={cloneData.targetMonth}
-                onChange={e => setCloneData({...cloneData, targetMonth: e.target.value})}
-              >
-                {monthNames.map((m, i) => (
-                  <option key={i} value={i + 1}>{m}</option>
-                ))}
-              </select>
-              <select 
-                className="w-full bg-surface border-none rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main appearance-none cursor-pointer"
-                value={cloneData.targetYear}
-                onChange={e => setCloneData({...cloneData, targetYear: e.target.value})}
-              >
-                {years.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={cloneLoading} 
-            className="w-full bg-btn-primary text-btn-text rounded-full py-3.5 font-bold hover:bg-btn-primary-hover disabled:opacity-70 transition-colors mt-6 h-[52px]"
-          >
-            {cloneLoading ? 'Cloning...' : 'Confirm Clone'}
-          </button>
-        </form>
-      </Modal>
+      
     </div>
   );
 }

@@ -6,5 +6,6 @@ export const budgetApi = {
   getUsage: (params) => api.get('/budgets/usage', { params }),
   create: (data) => api.post('/budgets', data),
   update: (id, data) => api.patch(`/budgets/${id}`, data),
-  delete: (id) => api.delete(`/budgets/${id}`)
+  delete: (id) => api.delete(`/budgets/${id}`),
+  clone: (data) => api.post('/budgets/clone', data)
 };

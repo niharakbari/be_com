@@ -7,19 +7,30 @@ import { recurringTransactionApi } from '../api/recurringTransactionApi';
 import { categoryApi } from '../api/categoryApi';
 import { Link, useNavigate } from 'react-router-dom';
 import CategorySelect from '../components/ui/CategorySelect';
+import { useAuth } from '../context/AuthContext';
+import { yearlyBudgetApi } from '../api/yearlyBudgetApi';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { settings } = useAuth();
+  const isYearly = settings?.budget_mode === 'yearly';
   
   const handleBudgetClick = (b) => {
-    const y = b.budget_year;
-    const m = b.budget_month - 1;
-    const firstDay = new Date(y, m, 1);
-    const lastDay = new Date(y, m + 1, 0);
-    const startStr = new Date(firstDay.getTime() - (firstDay.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-    const endStr = new Date(lastDay.getTime() - (lastDay.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-    
-    navigate(`/transactions?categoryId=${b.category_id || ''}&startDate=${startStr}&endDate=${endStr}`);
+    if (isYearly) {
+      const y = b.budget_year;
+      const startStr = `${y}-01-01`;
+      const endStr = `${y}-12-31`;
+      navigate(`/transactions?categoryId=${b.category_id || ''}&startDate=${startStr}&endDate=${endStr}`);
+    } else {
+      const y = b.budget_year;
+      const m = b.budget_month - 1;
+      const firstDay = new Date(y, m, 1);
+      const lastDay = new Date(y, m + 1, 0);
+      const startStr = new Date(firstDay.getTime() - (firstDay.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      const endStr = new Date(lastDay.getTime() - (lastDay.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      
+      navigate(`/transactions?categoryId=${b.category_id || ''}&startDate=${startStr}&endDate=${endStr}`);
+    }
   };
 
   const [loading, setLoading] = useState(true);
@@ -59,7 +70,9 @@ export default function Dashboard() {
           statisticsApi.getStatistics({ startDate: today, endDate: today }).catch(() => ({ data: { data: { totalIncome: 0, totalExpense: 0 } } })),
           statisticsApi.getStatistics({ startDate: firstDayStr, endDate: lastDayStr }).catch(() => ({ data: { data: { totalIncome: 0, totalExpense: 0, netBalance: 0 } } })),
           transactionApi.getAll({ limit: 5 }).catch(() => ({ data: { data: { transactions: [] } } })),
-          budgetApi.getUsage().catch(() => ({ data: { data: [] } })),
+          isYearly 
+            ? yearlyBudgetApi.getUsage({ year: new Date().getFullYear() }).catch(() => ({ data: { data: [] } }))
+            : budgetApi.getUsage().catch(() => ({ data: { data: [] } })),
           recurringTransactionApi.getAll().catch(() => ({ data: { data: [] } }))
         ]);
         
@@ -85,7 +98,7 @@ export default function Dashboard() {
       }
     };
     fetchDashboardData();
-  }, []);
+  }, [isYearly]);
 
   useEffect(() => {
     const fetchChartData = async () => {
