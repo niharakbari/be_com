@@ -2,6 +2,7 @@ const authService = require("../services/authService");
 
 
 const config = require("../config/config");
+const cookieOptions = require("../utils/cookieOptions");
 
 const register = async (req, res, next) => {
 
@@ -36,13 +37,9 @@ const login = async (req, res, next) => {
 
         res.cookie(
             "refreshToken",
-            result.refreshToken,
-            {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: config.jwt.refreshTokenExpiryMs
-            }
+            result.refreshToken,            
+            cookieOptions
+            
         );
 
 
@@ -50,8 +47,7 @@ const login = async (req, res, next) => {
             success: true,
 
             data: {
-                user: result.user,
-                accessToken: result.accessToken
+                user: result.user
             }
         });
 
@@ -88,11 +84,7 @@ const logout = async (req, res, next) => {
 
         res.clearCookie(
             "refreshToken",
-            {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict"
-            }
+            cookieOptions
         );
 
         return res.status(200).json({
@@ -123,12 +115,7 @@ const refreshToken = async (req, res, next) => {
         res.cookie(
             "refreshToken",
             result.refreshToken,
-            {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: config.jwt.refreshTokenExpiryMs
-            }
+            cookieOptions
         );
 
 

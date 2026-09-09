@@ -1,4 +1,15 @@
 const Joi = require("joi");
+const { isValidLocalDateTime } = require("../utils/date");
+
+const localDateTime = Joi.string().custom((value, helpers) => {
+    if (!isValidLocalDateTime(value)) {
+        return helpers.error("date.localDateTime");
+    }
+
+    return value;
+}).messages({
+    "date.localDateTime": "{{#label}} must be a valid local datetime in YYYY-MM-DDTHH:mm format"
+});
 
 const transactionFields = {
     category_id: Joi.number()
@@ -14,7 +25,7 @@ const transactionFields = {
         .precision(2)
         .max(999999999999.99),
 
-    transaction_date: Joi.date(),
+    transaction_date: localDateTime,
 
     note: Joi.string()
         .trim()

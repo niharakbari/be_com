@@ -316,11 +316,95 @@ const getBudgetUsage = async (
 };
 
 
+const cloneBudgets = async (
+    userId,
+    sourceMonth,
+    sourceYear,
+    targetMonth,
+    targetYear
+) => {
+
+    if (
+        sourceMonth === targetMonth &&
+        sourceYear === targetYear
+    ) {
+        throw new AppError(
+            "Source and target month cannot be the same",
+            400
+        );
+    }
+
+    validateBudgetData(
+        1,
+        sourceMonth,
+        sourceYear
+    );
+
+    validateBudgetData(
+        1,
+        targetMonth,
+        targetYear
+    );
+
+    const sourceBudgets =
+        await budgetModel.getBudgetsByMonth(
+            userId,
+            sourceMonth,
+            sourceYear
+        );
+
+    if (!sourceBudgets.length) {
+        throw new AppError(
+            "No budgets found for the source month",
+            404
+        );
+    }
+
+    const targetBudgets =
+        await budgetModel.getBudgetsByMonth(
+            userId,
+            targetMonth,
+            targetYear
+        );
+
+    if (targetBudgets.length) {
+        throw new AppError(
+            "Budgets already exist for the target month",
+            409
+        );
+    }
+
+    const clonedBudgets = [];
+
+    for (const budget of sourceBudgets) {
+
+        const budgetId =
+            await budgetModel.createBudget(
+                userId,
+                budget.category_id,
+                budget.amount,
+                targetMonth,
+                targetYear
+            );
+
+        clonedBudgets.push(
+            await budgetModel.findBudgetById(
+                budgetId,
+                userId
+            )
+        );
+    }
+
+    return clonedBudgets;
+};
+
+
 module.exports = {
     createBudget,
     getBudgets,
     getBudgetById,
     updateBudget,
     deleteBudget,
-    getBudgetUsage
+    getBudgetUsage,
+    cloneBudgets
 };

@@ -10,7 +10,7 @@ const db = mysql
         database: config.database.name,
         dateStrings: true,
         waitForConnections : true,
-        connectionLimit: 10,
+        connectionLimit: config.database.limit,
         queueLimit: 0,
     })
     .promise();

@@ -36,6 +36,11 @@ router.get(
     transactionController.getTransactions
 );
 
+router.get(
+    "/export",
+    protect,
+    transactionController.exportTransactions
+);
 
 router.get(
     "/:id",

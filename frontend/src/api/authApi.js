@@ -4,6 +4,7 @@ export const authApi = {
   register: (data) => api.post('/auth/register', data),
   verifyOTP: (data) => api.post('/auth/verify-registration-otp', data),
   login: (data) => api.post('/auth/login', data),
+  refreshToken: () => api.post('/auth/refresh-token'),
   logout: () => api.post('/auth/logout'),
   forgotPassword: (data) => api.post('/auth/forgot-password', data),
   resetPassword: (data) => api.post('/auth/reset-password', data),

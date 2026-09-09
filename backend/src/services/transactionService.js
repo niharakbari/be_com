@@ -14,6 +14,7 @@ const notificationService =
     require("./notificationService");
 
 const AppError = require("../utils/AppError");
+const { normalizeLocalDateTime } = require("../utils/date");
 
 
 const validateCategoryAndPaymentMode = async (
@@ -76,7 +77,7 @@ const createTransaction = async (
             category_id,
             payment_mode_id,
             amount,
-            transaction_date,
+            normalizeLocalDateTime(transaction_date),
             note
         );
 
@@ -110,7 +111,6 @@ const getTransactions = async (userId, queryParams = {}) => {
         if (startDate && new Date(startDate) > new Date(endDate)) {
             throw new AppError("startDate cannot be greater than endDate", 400);
         }
-        queryParams.endDate = endDate + " 23:59:59";
     }
 
     const parsedPage = parseInt(page, 10);
@@ -197,9 +197,9 @@ const updateTransaction = async (
             transactionData.amount ??
             existingTransaction.amount,
 
-        transaction_date:
-            transactionData.transaction_date ??
-            existingTransaction.transaction_date,
+        transaction_date: transactionData.transaction_date !== undefined
+            ? normalizeLocalDateTime(transactionData.transaction_date)
+            : existingTransaction.transaction_date,
 
         note:
             transactionData.note !== undefined
@@ -253,11 +253,23 @@ const deleteTransaction = async (
     }
 };
 
+const exportTransactions = async (
+    userId,
+    queryParams = {}
+) => {
+
+    return await transactionModel.getTransactionsForExport(
+        userId,
+        queryParams
+    );
+
+};
 
 module.exports = {
     createTransaction,
     getTransactions,
     getTransactionById,
     updateTransaction,
-    deleteTransaction
+    deleteTransaction,
+    exportTransactions
 };

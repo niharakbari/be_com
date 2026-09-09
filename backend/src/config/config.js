@@ -1,30 +1,69 @@
+const logger = require("./logger");
+
 require("dotenv").config();
 
-
-const accessTokenSecret = process.env.JWT_ACCESS_SECRET || process.env.JWT_ACCESS_TOKEN_SECRET;
-const refreshTokenSecret = process.env.JWT_REFRESH_SECRET || process.env.JWT_REFRESH_TOKEN_SECRET;
-const accessTokenExpiry = process.env.JWT_ACCESS_EXPIRY || process.env.JWT_ACCESS_TOKEN_EXPIRY;
-const refreshTokenExpiry = process.env.JWT_REFRESH_EXPIRY || process.env.JWT_REFRESH_TOKEN_EXPIRY;
-
-const openLibraryBaseURL = process.env.OPEN_LIBRARY_BASE_URL
-
-
-const bcryptSaltRounds = process.env.bcryptSaltRounds || process.env.BCRYPT_SALT_ROUNDS;
+const validateConfig = require("./configValidator");
 
 
 const missingVariables = [];
 
 
-module.exports = {
+const getRequiredEnv = (name) => {
 
-    port : process.env.PORT,
+    const value = process.env[name];
 
-    database : {
-        name : process.env.DB_NAME,
-        host : process.env.DB_HOST,
-        user : process.env.DB_USER,
-        password : process.env.DB_PASSWORD,
-        limit : process.env.DB_CONNECTION_LIMIT
+    if (!value) {
+        missingVariables.push(name);
+        return undefined;
+    }
+
+    return value;
+};
+
+
+
+const accessTokenSecret = getRequiredEnv("JWT_ACCESS_SECRET");
+const refreshTokenSecret = getRequiredEnv("JWT_REFRESH_SECRET");
+const accessTokenExpiry = getRequiredEnv("JWT_ACCESS_EXPIRY");
+const refreshTokenExpiry = getRequiredEnv("JWT_REFRESH_EXPIRY");
+const algorithm = getRequiredEnv("JWT_ALGORITHM");
+
+const bcryptSaltRounds = getRequiredEnv("bcryptSaltRounds");
+
+const port = getRequiredEnv("PORT");
+
+const databaseName = getRequiredEnv("DB_NAME");
+const databaseHost = getRequiredEnv("DB_HOST");
+const databaseUser = getRequiredEnv("DB_USER");
+const databasePassword = getRequiredEnv("DB_PASSWORD");
+const databaseConnectionLimit =
+    getRequiredEnv("DB_CONNECTION_LIMIT");
+
+const resendApiKey = getRequiredEnv("RESEND_API_KEY");
+
+
+
+if (missingVariables.length > 0) {
+
+    logger.error(
+        `Startup aborted: missing required environment variables: ${missingVariables.join(", ")}`
+    );
+
+    process.exit(1);
+
+}
+
+
+const config = {
+
+    port: port,
+
+    database: {
+        name: databaseName,
+        host: databaseHost,
+        user: databaseUser,
+        password: databasePassword,
+        limit: databaseConnectionLimit
     },
 
     jwt: {
@@ -32,15 +71,37 @@ module.exports = {
         refreshTokenSecret,
         accessTokenExpiry,
         refreshTokenExpiry,
-        refreshTokenExpiryMs: 30 * 24 * 60 * 60 * 1000 // 30 days
+        refreshTokenExpiryMs: 30 * 24 * 60 * 60 * 1000,
+        algorithm
     },
 
-    bcryptSaltRounds : Number(bcryptSaltRounds),
+    bcryptSaltRounds: Number(bcryptSaltRounds),
 
-    openLibraryURL : openLibraryBaseURL,
-
-    resend : {
-        api: process.env.RESEND_API_KEY
+    resend: {
+        api: resendApiKey
     }
 
+};
+
+
+
+const configurationErrors = validateConfig(config);
+
+
+if (configurationErrors.length > 0) {
+
+    logger.error(
+        `Startup aborted: invalid configuration: ${configurationErrors.join(" | ")}`
+    );
+
+    process.exit(1);
+
 }
+
+
+logger.info(
+    "Environment configuration loaded successfully"
+);
+
+
+module.exports = config;

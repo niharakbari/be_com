@@ -285,6 +285,38 @@ const getBudgetUsage = async (
     return result;
 };
 
+
+const getBudgetsByMonth = async (
+    userId,
+    month,
+    year,
+    connection = db
+) => {
+
+    const [result] = await connection.query(
+        `
+        SELECT
+            id,
+            category_id,
+            amount,
+            budget_month,
+            budget_year
+        FROM budgets
+        WHERE user_id = ?
+        AND budget_month = ?
+        AND budget_year = ?
+        ORDER BY category_id IS NOT NULL, category_id
+        `,
+        [
+            userId,
+            month,
+            year
+        ]
+    );
+
+    return result;
+};
+
 module.exports = {
     findBudget,
     createBudget,
@@ -292,5 +324,6 @@ module.exports = {
     findBudgetById,
     updateBudget,
     deleteBudget,
-    getBudgetUsage
+    getBudgetUsage,
+    getBudgetsByMonth
 };

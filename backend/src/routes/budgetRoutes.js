@@ -44,6 +44,13 @@ router.get("/usage",
 );
 
 
+router.post(
+    "/clone",
+    protect,
+    budgetController.cloneBudgets
+);
+
+
 router.get(
     "/:id",
     protect,
@@ -64,6 +71,7 @@ router.delete(
     protect,
     budgetController.deleteBudget
 );
+
 
 
 

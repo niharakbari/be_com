@@ -5,7 +5,7 @@ const recurringTransactionService = require('../services/recurringTransactionSer
 const startRecurringTransactionJob = () => {
 
     cron.schedule(
-        "* * * * *",
+        "0 0 0 * * *",
 
         async () => {
 

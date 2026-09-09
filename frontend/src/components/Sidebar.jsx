@@ -1,16 +1,21 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, List, FolderHeart, Settings, Target, Repeat } from 'lucide-react';
+import { Home, List, FolderHeart, Settings, Target, Repeat, PiggyBank } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ onClose }) {
   const location = useLocation();
+  const { settings } = useAuth();
+  
+  const budgetPath = settings?.budget_mode === 'yearly' ? '/yearly-budgets' : '/budgets';
 
   const navItems = [
     { name: 'Home', path: '/', icon: Home },
     { name: 'Transactions', path: '/transactions', icon: List },
     { name: 'Recurring', path: '/recurring', icon: Repeat },
         { name: 'Categories', path: '/categories', icon: FolderHeart },
-    { name: 'Budgets', path: '/budgets', icon: Target },
+    { name: 'Savings', path: '/savings', icon: PiggyBank },
+    { name: 'Budgets', path: budgetPath, icon: Target },
     { name: 'Settings', path: '/profile', icon: Settings },
   ];
 
@@ -23,7 +28,7 @@ export default function Sidebar({ onClose }) {
       
       <nav className="flex-col flex gap-2 flex-1 overflow-y-auto pr-1">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
+          const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)) || (item.name === 'Budgets' && location.pathname.includes('budgets'));
           
           return (
             <NavLink

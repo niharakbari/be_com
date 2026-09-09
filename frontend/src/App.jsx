@@ -12,9 +12,11 @@ import MainLayout from './components/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Categories from './pages/Categories';
 import Budgets from './pages/Budgets';
+import YearlyBudgets from './pages/YearlyBudgets';
 import Transactions from './pages/Transactions';
 import RecurringTransactions from './pages/RecurringTransactions';
 import Profile from './pages/Profile';
+import Savings from './pages/Savings';
 
 function App() {
   return (
@@ -36,7 +38,9 @@ function App() {
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/recurring" element={<RecurringTransactions />} />
             <Route path="/categories" element={<Categories />} />
+            <Route path="/savings" element={<Savings />} />
             <Route path="/budgets" element={<Budgets />} />
+            <Route path="/yearly-budgets" element={<YearlyBudgets />} />
             <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>

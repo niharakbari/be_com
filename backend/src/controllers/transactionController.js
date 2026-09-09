@@ -6,6 +6,7 @@ const asyncHandler = require(
     "../utils/asyncHandler"
 );
 
+const { Parser } = require("json2csv");
 
 const createTransaction = asyncHandler(
     async (req, res) => {
@@ -90,10 +91,97 @@ const deleteTransaction = asyncHandler(
 );
 
 
+const exportTransactions = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+        const transactions =
+            await transactionService.exportTransactions(
+                req.user.id,
+                req.query
+            );
+
+        const fields = [
+            {
+                label: "Transaction ID",
+                value: "id"
+            },
+            {
+                label: "Amount",
+                value: "amount"
+            },
+            {
+                label: "Date",
+                value: "transaction_date"
+            },
+            {
+                label: "Type",
+                value: "type"
+            },
+            {
+                label: "Category",
+                value: "category_name"
+            },
+            {
+                label: "Payment Mode",
+                value: "payment_mode_name"
+            },
+            {
+                label: "Note",
+                value: "note"
+            }
+
+        ];
+
+
+        const parser = new Parser({
+            fields
+        });
+
+        const csv =
+            parser.parse(
+                transactions
+            );
+
+        const today =
+            new Date()
+                .toISOString()
+                .split("T")[0];
+
+        const fileName =
+            `transactions-${today}.csv`;
+
+        res.setHeader(
+            "Content-Type",
+            "text/csv; charset=utf-8"
+        );
+
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="${fileName}"`
+        );
+
+        return res
+            .status(200)
+            .send(csv);
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
+
+
 module.exports = {
     createTransaction,
     getTransactions,
     getTransactionById,
     updateTransaction,
-    deleteTransaction
+    deleteTransaction,
+    exportTransactions
 };

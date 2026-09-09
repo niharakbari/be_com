@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, ArrowUpRight, ArrowDownRight, Search, X, Target } from 'lucide-react';
+import { Plus, Edit2, Trash2, ArrowUpRight, ArrowDownRight, Search, X, Target, Download, Loader2 } from 'lucide-react';
 import { transactionApi } from '../api/transactionApi';
 import { categoryApi } from '../api/categoryApi';
 import { budgetApi } from '../api/budgetApi';
@@ -8,6 +8,39 @@ import Modal from '../components/ui/Modal';
 import CategorySelect from '../components/ui/CategorySelect';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
+
+
+const pad = (n) => String(n).padStart(2, "0");
+
+const getLocalDate = () => {
+    const now = new Date();
+
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+};
+
+const getLocalTime = () => {
+    const now = new Date();
+
+    return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+};
+
+const getLocalDateTime = () => {
+  const now = new Date();
+
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+};
+
+const toDateTimeLocal = (value) =>
+  value ? String(value).replace(' ', 'T').slice(0, 16) : '';
+
+const formatTransactionDate = (value) => {
+  const [year, month, day] = String(value).slice(0, 10).split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+};
 
 
 const BudgetInsightPreview = ({ type, categoryId, date, amount, budgetsUsage }) => {
@@ -96,7 +129,7 @@ export default function Transactions() {
   const initialFormState = {
     transaction_type: 'expense',
     amount: '',
-    transaction_date: new Date().toISOString().split('T')[0],
+    transaction_date: getLocalDateTime(),
     category_id: '',
     payment_mode_id: '',
     description: ''
@@ -169,6 +202,7 @@ export default function Transactions() {
       if (filterCategoryId) params.categoryId = filterCategoryId;
       if (filterPaymentModeId) params.paymentModeId = filterPaymentModeId;
       if (activeTab !== 'all') params.type = activeTab;
+      if (searchTerm.trim()) params.search = searchTerm.trim();
 
       const res = await transactionApi.getAll(params);
       const data = res.data?.data || {};
@@ -192,9 +226,75 @@ export default function Transactions() {
     fetchMetadata();
   }, []);
 
+  const [searchTrigger, setSearchTrigger] = useState(0);
+  const [exportLoading, setExportLoading] = useState(false);
+
+  const handleExport = async () => {
+    setExportLoading(true);
+    try {
+      const params = { sortBy, order };
+      
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
+      if (filterCategoryId) params.categoryId = filterCategoryId;
+      if (filterPaymentModeId) params.paymentModeId = filterPaymentModeId;
+      if (activeTab !== 'all') params.type = activeTab;
+      if (searchTerm.trim()) params.search = searchTerm.trim();
+
+      const res = await transactionApi.export(params);
+      
+      // Determine filename from Content-Disposition if present
+      let filename = 'transactions.csv';
+      const disposition = res.headers['content-disposition'];
+      if (disposition && disposition.indexOf('attachment') !== -1) {
+        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+        const matches = filenameRegex.exec(disposition);
+        if (matches != null && matches[1]) { 
+          filename = matches[1].replace(/['"]/g, '');
+        }
+      } else {
+        const d = new Date();
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        filename = `transactions-${yyyy}-${mm}-${dd}.csv`;
+      }
+
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to export transactions.');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const isSearchMounted = useRef(false);
+
+  // Use a debounced effect for searchTerm
+  useEffect(() => {
+    if (!isSearchMounted.current) {
+      isSearchMounted.current = true;
+      return;
+    }
+    const timeoutId = setTimeout(() => {
+      setPage(1);
+      setSearchTrigger(prev => prev + 1);
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
   useEffect(() => {
     fetchTransactions();
-  }, [page, activeTab, startDate, endDate, sortBy, order, filterCategoryId, filterPaymentModeId]);
+  }, [page, activeTab, startDate, endDate, sortBy, order, filterCategoryId, filterPaymentModeId, searchTrigger]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -252,7 +352,7 @@ export default function Transactions() {
     setFormData({
       transaction_type: t.type,
       amount: t.amount,
-      transaction_date: new Date(t.transaction_date).toISOString().split('T')[0],
+      transaction_date: toDateTimeLocal(t.transaction_date),
       category_id: t.category_id || '',
       payment_mode_id: t.payment_mode_id || '',
       description: t.note || ''
@@ -337,11 +437,7 @@ export default function Transactions() {
   const filteredCategories = categories.filter(c => c.type === formData.transaction_type);
   const quickAddFilteredCategories = categories.filter(c => c.type === quickAddData.transaction_type);
 
-  const displayedTransactions = transactions.filter(t => {
-    const matchesSearch = (t.category_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (t.description || '').toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
-  });
+  const displayedTransactions = transactions;
 
   return (
     <div className="h-full flex flex-col">
@@ -359,6 +455,14 @@ export default function Transactions() {
               onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
+          <button 
+            disabled={exportLoading}
+            onClick={handleExport} 
+            className="bg-surface border border-border-main text-text-main px-6 py-3 rounded-full font-semibold flex items-center gap-2 hover:bg-page transition-colors disabled:opacity-50"
+          >
+            {exportLoading ? <Loader2 size={20} className="animate-spin" /> : <Download size={20} />} 
+            <span className="hidden sm:inline">Export CSV</span>
+          </button>
           <button onClick={openAddModal} className="bg-btn-primary text-btn-text px-6 py-3 rounded-full font-semibold flex items-center gap-2 hover:bg-btn-primary-hover transition-colors">
             <Plus size={20} /> Add
           </button>
@@ -477,7 +581,7 @@ export default function Transactions() {
         </div>
         <div className="w-full md:w-[calc(50%-8px)] xl:flex-[1.2]">
           <label className="block text-xs font-semibold mb-1.5 text-text-muted ml-1">Date</label>
-          <input type="date" name="transaction_date" className="w-full bg-page border-none rounded-2xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm font-medium h-[46px] text-text-main" value={quickAddData.transaction_date} onChange={handleQuickAddChange} required />
+          <input type="datetime-local" name="transaction_date" className="w-full bg-page border-none rounded-2xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm font-medium h-[46px] text-text-main" value={quickAddData.transaction_date} onChange={handleQuickAddChange} required />
         </div>
         <div className="w-full md:w-[calc(50%-8px)] xl:flex-[2]">
           <label className="block text-xs font-semibold mb-1.5 text-text-muted ml-1">Description</label>
@@ -520,7 +624,7 @@ export default function Transactions() {
                       )}
                     </div>
                     <p className="text-sm text-text-muted font-medium truncate">
-                      {new Date(t.transaction_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'})}
+                      {formatTransactionDate(t.transaction_date)}
                       {t.note && <span className="text-text-muted/60 ml-1.5 font-normal truncate">· {t.note}</span>}
                     </p>
                   </div>
@@ -595,7 +699,7 @@ export default function Transactions() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1 text-text-muted">Date</label>
-              <input type="date" name="transaction_date" className="w-full bg-page border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main" value={formData.transaction_date} onChange={handleChange} required />
+              <input type="datetime-local" name="transaction_date" className="w-full bg-page border-none rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-text-main" value={formData.transaction_date} onChange={handleChange} required />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1 text-text-muted">Category</label>

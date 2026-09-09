@@ -32,7 +32,7 @@ const getStatistics = async (
 
     if (endDate) {
         whereConditions.push(
-            "t.transaction_date <= ?"
+            "t.transaction_date < DATE_ADD(?, INTERVAL 1 DAY)"
         );
 
         values.push(endDate);
@@ -150,14 +150,12 @@ const getBreakdownStatistics = async (
 
 
     if (endDate) {
+    whereConditions.push(
+        "t.transaction_date < DATE_ADD(?, INTERVAL 1 DAY)"
+    );
 
-        whereConditions.push(
-            "t.transaction_date <= ?"
-        );
-
-        values.push(endDate);
-
-    }
+    values.push(endDate);
+}
 
 
     let selectFields;
