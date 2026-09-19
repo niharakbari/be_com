@@ -36,10 +36,11 @@ const databaseName = getRequiredEnv("DB_NAME");
 const databaseHost = getRequiredEnv("DB_HOST");
 const databaseUser = getRequiredEnv("DB_USER");
 const databasePassword = getRequiredEnv("DB_PASSWORD");
-const databaseConnectionLimit =
-    getRequiredEnv("DB_CONNECTION_LIMIT");
+const databaseConnectionLimit = getRequiredEnv("DB_CONNECTION_LIMIT");
 
 const resendApiKey = getRequiredEnv("RESEND_API_KEY");
+
+const frontendUrl = getRequiredEnv("FRONTEND_URL");
 
 
 
@@ -56,8 +57,10 @@ if (missingVariables.length > 0) {
 
 const config = {
 
-    port: port,
+    frontendUrl,
 
+    port: port,
+    
     database: {
         name: databaseName,
         host: databaseHost,
@@ -79,7 +82,8 @@ const config = {
 
     resend: {
         api: resendApiKey
-    }
+    },
+ 
 
 };
 

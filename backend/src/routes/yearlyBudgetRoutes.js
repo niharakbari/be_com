@@ -1,3 +1,4 @@
+const { idParamValidation } = require("../validations/commonValidation");
 const express = require("express");
 
 const router = express.Router();
@@ -13,7 +14,8 @@ const { validate } =
 
 const {
     createYearlyBudgetValidation,
-    updateYearlyBudgetValidation
+    updateYearlyBudgetValidation,
+    yearlyBudgetQueryValidation
 } =
     require("../validations/yearlyBudgetValidation");
 
@@ -33,12 +35,15 @@ router.post(
 router.get(
     "/usage",
     protect,
+    validate(yearlyBudgetQueryValidation, "query"),
     yearlyBudgetController.getUsage
 );
 
 
 router.get(
     "/",
+    protect,
+    validate(yearlyBudgetQueryValidation, "query"),
     protect,
     yearlyBudgetController.getBudgets
 );
@@ -47,6 +52,7 @@ router.get(
 router.get(
     "/:id",
     protect,
+    validate(idParamValidation, "params"),
     yearlyBudgetController.getBudgetById
 );
 
@@ -54,7 +60,8 @@ router.get(
 router.patch(
     "/:id",
     protect,
-    validate(updateYearlyBudgetValidation),
+    validate(idParamValidation, "params"),
+    validate(updateYearlyBudgetValidation, "body"),
     yearlyBudgetController.updateBudget
 );
 
@@ -62,6 +69,7 @@ router.patch(
 router.delete(
     "/:id",
     protect,
+    validate(idParamValidation, "params"),
     yearlyBudgetController.deleteBudget
 );
 

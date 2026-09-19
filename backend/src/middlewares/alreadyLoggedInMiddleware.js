@@ -1,3 +1,4 @@
+const AppError = require("../utils/AppError");
 const refreshTokenModel =
     require("../models/refreshTokenModel");
 
@@ -33,9 +34,7 @@ const alreadyLoggedIn = async (
         // Valid session exists
         if (storedToken && String(storedToken.user_id) === String(decoded.id)) {
             console.log("[alreadyLoggedIn] Active session found, throwing error.");
-            const error = new Error("You are already logged in");
-            error.statusCode = 400;
-            return next(error);
+            return next(new AppError("You are already logged in", 400));
         }
 
         console.log("[alreadyLoggedIn] Invalid or mismatched token, allowing login.");

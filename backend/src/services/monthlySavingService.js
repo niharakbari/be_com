@@ -1,3 +1,4 @@
+const AppError = require("../utils/AppError");
 const monthlySavingModel = require("../models/monthlySavingModel");
 const db = require("../config/database");
 
@@ -18,9 +19,7 @@ const monthlySavingService = {
             );
 
         if (existing) {
-            throw new Error(
-                "Savings goal already exists for this month"
-            );
+            throw new AppError("Savings goal already exists for this month", 409);
         }
 
         return await monthlySavingModel.create(
@@ -64,7 +63,7 @@ const monthlySavingService = {
         );
 
         if (!saving[0].length) {
-            throw new Error("Savings record not found");
+            throw new AppError("Savings record not found", 404);
         }
 
         const affectedRows =
@@ -75,7 +74,7 @@ const monthlySavingService = {
             );
 
         if (!affectedRows) {
-            throw new Error("Failed to update savings goal");
+            throw new AppError("Failed to update savings goal", 400);
         }
 
         return true;
@@ -94,7 +93,7 @@ const monthlySavingService = {
             );
 
         if (!affectedRows) {
-            throw new Error("Savings record not found");
+            throw new AppError("Savings record not found", 404);
         }
 
         return true;

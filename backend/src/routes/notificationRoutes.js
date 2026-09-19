@@ -1,4 +1,6 @@
 const express = require('express');
+const { validate } = require("../middlewares/validationMiddleware");
+const { idParamValidation } = require("../validations/commonValidation");
 
 const router = express.Router();
 
@@ -24,12 +26,14 @@ router.patch(
 router.patch(
     "/:id/read",
     protect,
+    validate(idParamValidation, "params"),
     notificationController.markAsRead
 );
 
 router.delete(
     "/:id",
     protect,
+    validate(idParamValidation, "params"),
     notificationController.deleteNotification
 );
 

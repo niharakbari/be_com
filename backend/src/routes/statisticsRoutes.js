@@ -11,12 +11,16 @@ const {
 );
 
 
+const { validate } = require("../middlewares/validationMiddleware");
+const { statisticsQueryValidation } = require("../validations/statisticsValidation");
+
 const router = express.Router();
 
 
 router.get(
     "/breakdown",
     protect,
+    validate(statisticsQueryValidation, "query"),
     statisticsController.getBreakdownStatistics
 );
 
@@ -24,6 +28,7 @@ router.get(
 router.get(
     "/",
     protect,
+    validate(statisticsQueryValidation, "query"),
     statisticsController.getStatistics
 );
 

@@ -19,11 +19,26 @@ const recurringTransactionRoutes = require("./routes/recurringTransactionRoutes"
 const monthlySavingRoutes = require("./routes/monthlySavingRoutes");
 const userSettingsRoutes = require("./routes/userSettingsRoutes");
 const yearlyBudgetRoutes = require("./routes/yearlyBudgetRoutes");
+const config = require('./config/config');
+
+const helmet = require("helmet");
 
 const app = express();
 
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        formAction: ["'none'"],
+      },
+    },
+  })
+);
+
 app.use(cors({
-    origin: ['http://localhost:5174'],
+    origin: config.frontendUrl,
     credentials: true
 }));
 

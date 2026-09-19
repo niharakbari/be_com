@@ -1,3 +1,4 @@
+const AppError = require("../utils/AppError");
 const statisticsModel = require(
     "../models/statisticsModel"
 );
@@ -35,26 +36,14 @@ const validateDateFilters = (
 
     if (!isValidDate(startDate)) {
 
-        const error = new Error(
-            "Invalid startDate. Use YYYY-MM-DD."
-        );
-
-        error.statusCode = 400;
-
-        throw error;
+        throw new AppError("Invalid startDate. Use YYYY-MM-DD.", 400);
 
     }
 
 
     if (!isValidDate(endDate)) {
 
-        const error = new Error(
-            "Invalid endDate. Use YYYY-MM-DD."
-        );
-
-        error.statusCode = 400;
-
-        throw error;
+        throw new AppError("Invalid endDate. Use YYYY-MM-DD.", 400);
 
     }
 
@@ -65,13 +54,7 @@ const validateDateFilters = (
         startDate > endDate
     ) {
 
-        const error = new Error(
-            "startDate cannot be later than endDate."
-        );
-
-        error.statusCode = 400;
-
-        throw error;
+        throw new AppError("startDate cannot be later than endDate.", 400);
 
     }
 
@@ -96,13 +79,7 @@ const validatePositiveInteger = (
         numberValue <= 0
     ) {
 
-        const error = new Error(
-            `Invalid ${fieldName}. Must be a positive integer.`
-        );
-
-        error.statusCode = 400;
-
-        throw error;
+        throw new AppError(`Invalid ${fieldName}. Must be a positive integer.`, 400);
 
     }
 
@@ -134,13 +111,7 @@ const validateBreakdownFilters = (
         !allowedGroupBy.includes(groupBy)
     ) {
 
-        const error = new Error(
-            "Invalid groupBy. Use category, paymentMode, or date."
-        );
-
-        error.statusCode = 400;
-
-        throw error;
+        throw new AppError("Invalid groupBy. Use category, paymentMode, or date.", 400);
 
     }
 
@@ -150,13 +121,7 @@ const validateBreakdownFilters = (
         !["income", "expense"].includes(type)
     ) {
 
-        const error = new Error(
-            "Invalid type. Use income or expense."
-        );
-
-        error.statusCode = 400;
-
-        throw error;
+        throw new AppError("Invalid type. Use income or expense.", 400);
 
     }
 
@@ -166,13 +131,7 @@ const validateBreakdownFilters = (
         !["amount", "date"].includes(sortBy)
     ) {
 
-        const error = new Error(
-            "Invalid sortBy. Use amount or date."
-        );
-
-        error.statusCode = 400;
-
-        throw error;
+        throw new AppError("Invalid sortBy. Use amount or date.", 400);
 
     }
 
@@ -184,13 +143,7 @@ const validateBreakdownFilters = (
         )
     ) {
 
-        const error = new Error(
-            "Invalid order. Use ASC or DESC."
-        );
-
-        error.statusCode = 400;
-
-        throw error;
+        throw new AppError("Invalid order. Use ASC or DESC.", 400);
 
     }
 

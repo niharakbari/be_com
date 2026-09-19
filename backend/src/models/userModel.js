@@ -268,4 +268,4 @@ module.exports = {
     findByIdentifier,
     findPasswordUserByEmail,
     updatePassword
-}
+} 

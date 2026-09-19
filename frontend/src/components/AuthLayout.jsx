@@ -21,17 +21,27 @@ export default function AuthLayout() {
 
       <div className="bg-surface p-8 rounded-[32px] w-full max-w-md shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-border-main text-text-main">
         <div className="flex justify-center mb-10 relative">
-          {/* Metallic Floating Badge Logo */}
-          <div className="flex items-center gap-1 font-sans select-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-            <span className="text-4xl font-light tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-gray-300 via-gray-400 to-gray-600 dark:from-gray-100 dark:via-gray-300 dark:to-gray-500 uppercase">P</span>
-            <span className="text-4xl font-thin text-transparent bg-clip-text bg-gradient-to-b from-gray-300 via-gray-400 to-gray-600 dark:from-gray-100 dark:via-gray-300 dark:to-gray-500 mx-1">|</span>
-            <span className="text-4xl font-light tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-gray-300 via-gray-400 to-gray-600 dark:from-gray-100 dark:via-gray-300 dark:to-gray-500 uppercase">F</span>
+          {/* Crisp, Solid Floating Badge Logo */}
+          <div className="flex items-center font-sans select-none tracking-[0.15em] mb-2">
+            <span 
+              className="text-4xl font-bold text-text-main uppercase"
+              style={{ textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+            >
+              P
+            </span>
+            <span className="text-4xl font-thin text-text-muted mx-2">|</span>
+            <span 
+              className="text-4xl font-bold text-text-main uppercase"
+              style={{ textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+            >
+              F
+            </span>
           </div>
           
           {/* Loading Spinner */}
           {isAuthLoading && (
             <div className="absolute -bottom-6 left-1/2 -translate-x-1/2">
-              <div className="w-5 h-5 border-2 border-gray-400 dark:border-gray-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin"></div>
             </div>
           )}
         </div>

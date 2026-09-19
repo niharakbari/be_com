@@ -182,7 +182,7 @@ export default function Header() {
           {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
         </button>
 
-        <Link to="/profile" className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:ring-2 hover:ring-[var(--color-primary)] transition-all cursor-pointer">
+        <Link to="/profile" className="w-12 h-12 rounded-full bg-border-main overflow-hidden shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:ring-2 hover:ring-[var(--color-primary)] transition-all cursor-pointer">
           <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${user?.user_name || 'User'}`} alt="Profile" className="w-full h-full object-cover" />
         </Link>
       </div>

@@ -24,7 +24,13 @@ const updateSavingsSchema = Joi.object({
         .required()
 });
 
+const monthlySavingQueryValidation = Joi.object({
+    month: Joi.number().integer().min(1).max(12).optional(),
+    year: Joi.number().integer().min(2000).max(2100).optional()
+});
+
 module.exports = {
     createSavingsSchema,
-    updateSavingsSchema
+    updateSavingsSchema,
+    monthlySavingQueryValidation
 };

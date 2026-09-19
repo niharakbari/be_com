@@ -1,3 +1,4 @@
+const AppError = require("../utils/AppError");
 const db = require("../config/database");
 
 const userModel = require('../models/userModel');
@@ -31,10 +32,7 @@ const register = async (userData) => {
     );
 
     if (existingEmail) {
-        const error = new Error("Email already registered");
-        error.statusCode = 409;
-
-        throw error;
+        throw new AppError("Email already registered", 409);
     }
 
 
@@ -43,13 +41,7 @@ const register = async (userData) => {
     );
 
     if (existingMobile) {
-        const error = new Error(
-            "Mobile number already registered"
-        );
-
-        error.statusCode = 409;
-
-        throw error;
+        throw new AppError("Mobile number already registered", 409);
     }
 
 
@@ -124,13 +116,7 @@ const login = async (loginData) => {
 
     if (!user) {
 
-        const error = new Error(
-            "Invalid credentials"
-        );
-
-        error.statusCode = 401;
-
-        throw error;
+        throw new AppError("Invalid credentials", 401);
     };
 
 
@@ -142,13 +128,7 @@ const login = async (loginData) => {
 
     if (!isPasswordValid) {
 
-        const error = new Error(
-            "Invalid credentials"
-        );
-
-        error.statusCode = 401;
-
-        throw error;
+        throw new AppError("Invalid credentials", 401);
     }
 
 
@@ -220,13 +200,7 @@ const verifyRegistrationOTP = async (
 
     if (!otpRecord) {
 
-        const error = new Error(
-            "OTP is invalid or expired"
-        );
-
-        error.statusCode = 400;
-
-        throw error;
+        throw new AppError("OTP is invalid or expired", 400);
     }
 
 
@@ -238,13 +212,7 @@ const verifyRegistrationOTP = async (
 
     if (!isOTPValid) {
 
-        const error = new Error(
-            "Invalid OTP"
-        );
-
-        error.statusCode = 400;
-
-        throw error;
+        throw new AppError("Invalid OTP", 400);
     }
 
 
@@ -263,13 +231,7 @@ const verifyRegistrationOTP = async (
 
         if (existingEmail) {
 
-            const error = new Error(
-                "Email already registered"
-            );
-
-            error.statusCode = 409;
-
-            throw error;
+            throw new AppError("Email already registered", 409);
         }
 
 
@@ -281,13 +243,7 @@ const verifyRegistrationOTP = async (
 
         if (existingMobile) {
 
-            const error = new Error(
-                "Mobile number already registered"
-            );
-
-            error.statusCode = 409;
-
-            throw error;
+            throw new AppError("Mobile number already registered", 409);
         }
 
 
@@ -336,13 +292,7 @@ const refreshAccessToken = async (
 
     if (!token) {
 
-        const error = new Error(
-            "Refresh token is required"
-        );
-
-        error.statusCode = 401;
-
-        throw error;
+        throw new AppError("Refresh token is required", 401);
     }
 
 
@@ -354,10 +304,7 @@ const refreshAccessToken = async (
         decoded = verifyRefreshToken(token);
 
     } catch (error) {
-
-        error.statusCode = 401;
-
-        throw error;
+        throw new AppError("Invalid refresh token", 401);
     }
 
 
@@ -369,13 +316,7 @@ const refreshAccessToken = async (
 
     if (!storedToken) {
 
-        const error = new Error(
-            "Invalid refresh token"
-        );
-
-        error.statusCode = 401;
-
-        throw error;
+        throw new AppError("Invalid refresh token", 401);
     }
 
 
@@ -387,13 +328,7 @@ const refreshAccessToken = async (
             storedToken.id
         );
 
-        const error = new Error(
-            "Refresh token expired"
-        );
-
-        error.statusCode = 401;
-
-        throw error;
+        throw new AppError("Refresh token expired", 401);
     }
 
 
@@ -409,26 +344,14 @@ const refreshAccessToken = async (
             storedToken.id
         );
 
-        const error = new Error(
-            "User not found"
-        );
-
-        error.statusCode = 401;
-
-        throw error;
+        throw new AppError("User not found", 401);
     }
 
 
 
     if (storedToken.user_id !== user.id) {
 
-        const error = new Error(
-            "Invalid refresh token"
-        );
-
-        error.statusCode = 401;
-
-        throw error;
+        throw new AppError("Invalid refresh token", 401);
     }
 
 
@@ -529,13 +452,7 @@ const resetPassword = async (
 
     if (!otpRecord) {
 
-        const error = new Error(
-            "OTP is invalid or expired"
-        );
-
-        error.statusCode = 400;
-
-        throw error;
+        throw new AppError("OTP is invalid or expired", 400);
 
     }
 
@@ -548,13 +465,7 @@ const resetPassword = async (
 
     if (!isOTPValid) {
 
-        const error = new Error(
-            "Invalid OTP"
-        );
-
-        error.statusCode = 400;
-
-        throw error;
+        throw new AppError("Invalid OTP", 400);
 
     }
 
@@ -566,13 +477,7 @@ const resetPassword = async (
 
     if (!user) {
 
-        const error = new Error(
-            "User not found"
-        );
-
-        error.statusCode = 404;
-
-        throw error;
+        throw new AppError("User not found", 404);
 
     }
 

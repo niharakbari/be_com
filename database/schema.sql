@@ -1,13 +1,63 @@
+-- Personal Finance Manager — Database Schema
+-- Run this file against a MySQL database before starting the backend.
+-- Schema order respects foreign key dependencies.
+
+
+-- -----------------------------------
+-- Users
+-- -----------------------------------
+
 CREATE TABLE users (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
+    phone_number VARCHAR(15) NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+
+    otp_code VARCHAR(10) NULL,
+    otp_expiry TIMESTAMP NULL,
+
+    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
 
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP
 );
+
+
+-- -----------------------------------
+-- User Settings
+-- -----------------------------------
+
+CREATE TABLE user_settings (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+
+    budget_mode ENUM('monthly', 'yearly')
+        NOT NULL DEFAULT 'monthly',
+
+    onboarding_completed BOOLEAN
+        NOT NULL DEFAULT FALSE,
+
+    created_at TIMESTAMP
+        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP
+        NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_user_settings_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    UNIQUE KEY unique_user_settings (user_id)
+);
+
+
+-- -----------------------------------
+-- Categories
+-- -----------------------------------
 
 CREATE TABLE categories (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -30,6 +80,10 @@ CREATE TABLE categories (
 );
 
 
+-- -----------------------------------
+-- Payment Modes (seeded at startup)
+-- -----------------------------------
+
 CREATE TABLE payment_modes (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
@@ -50,6 +104,9 @@ VALUES
     ('Other');
 
 
+-- -----------------------------------
+-- Transactions
+-- -----------------------------------
 
 CREATE TABLE transactions (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -90,6 +147,9 @@ CREATE TABLE transactions (
 );
 
 
+-- -----------------------------------
+-- Recurring Transactions
+-- -----------------------------------
 
 CREATE TABLE recurring_transactions (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -142,6 +202,10 @@ CREATE TABLE recurring_transactions (
 );
 
 
+-- -----------------------------------
+-- Recurring Transaction Occurrences
+-- -----------------------------------
+
 CREATE TABLE recurring_transaction_occurrences (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
@@ -171,6 +235,9 @@ CREATE TABLE recurring_transaction_occurrences (
 );
 
 
+-- -----------------------------------
+-- Monthly Budgets
+-- -----------------------------------
 
 CREATE TABLE budgets (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -212,112 +279,10 @@ CREATE TABLE budgets (
         (user_id, category_id, budget_month, budget_year)
 );
 
-CREATE TABLE notifications (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
-    user_id BIGINT UNSIGNED NOT NULL,
-
-    type VARCHAR(50) NOT NULL,
-
-    title VARCHAR(255) NOT NULL,
-
-    message TEXT NOT NULL,
-
-    budget_id BIGINT UNSIGNED NULL,
-
-    budget_month TINYINT UNSIGNED NULL,
-
-    budget_year SMALLINT UNSIGNED NULL,
-
-    is_read BOOLEAN NOT NULL DEFAULT FALSE,
-
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_notifications_user
-        FOREIGN KEY (user_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_notifications_budget
-        FOREIGN KEY (budget_id)
-        REFERENCES budgets(id)
-        ON DELETE CASCADE,
-
-    INDEX idx_notifications_user
-        (user_id),
-
-    INDEX idx_notifications_user_read
-        (user_id, is_read),
-
-    INDEX idx_notifications_created
-        (user_id, created_at)
-);
-
-CREATE TABLE monthly_savings (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT UNSIGNED NOT NULL,
-
-    saving_month TINYINT UNSIGNED NOT NULL,
-    saving_year SMALLINT UNSIGNED NOT NULL,
-
-    savings_goal DECIMAL(15,2) NOT NULL,
-    actual_saving DECIMAL(15,2) NOT NULL DEFAULT 0,
-
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_monthly_savings_user
-        FOREIGN KEY (user_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT chk_savings_goal
-        CHECK (savings_goal > 0),
-
-    CONSTRAINT chk_actual_saving
-        CHECK (actual_saving >= 0),
-
-    CONSTRAINT chk_saving_month
-        CHECK (saving_month BETWEEN 1 AND 12),
-
-    CONSTRAINT chk_saving_year
-        CHECK (saving_year BETWEEN 2000 AND 2100),
-
-    UNIQUE KEY unique_user_saving_month (
-        user_id,
-        saving_month,
-        saving_year
-    )
-);
-
-ALTER TABLE monthly_savings
-MODIFY actual_saving DECIMAL(15,2) NULL DEFAULT NULL;
-
-CREATE TABLE be_com.user_settings (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT UNSIGNED NOT NULL,
-
-    budget_mode ENUM('monthly', 'yearly')
-        NOT NULL DEFAULT 'monthly',
-
-    onboarding_completed BOOLEAN
-        NOT NULL DEFAULT FALSE,
-
-    created_at TIMESTAMP
-        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMP
-        NOT NULL DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_user_settings_user
-        FOREIGN KEY (user_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE,
-
-    UNIQUE KEY unique_user_settings (user_id)
-);
+-- -----------------------------------
+-- Yearly Budgets
+-- -----------------------------------
 
 CREATE TABLE yearly_budgets (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -366,4 +331,93 @@ CREATE TABLE yearly_budgets (
 
     CONSTRAINT chk_yearly_budget_year
         CHECK (budget_year BETWEEN 2000 AND 2100)
+);
+
+
+-- -----------------------------------
+-- Notifications
+-- -----------------------------------
+
+CREATE TABLE notifications (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    user_id BIGINT UNSIGNED NOT NULL,
+
+    type VARCHAR(50) NOT NULL,
+
+    title VARCHAR(255) NOT NULL,
+
+    message TEXT NOT NULL,
+
+    budget_id BIGINT UNSIGNED NULL,
+
+    budget_month TINYINT UNSIGNED NULL,
+
+    budget_year SMALLINT UNSIGNED NULL,
+
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_notifications_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_notifications_budget
+        FOREIGN KEY (budget_id)
+        REFERENCES budgets(id)
+        ON DELETE CASCADE,
+
+    INDEX idx_notifications_user
+        (user_id),
+
+    INDEX idx_notifications_user_read
+        (user_id, is_read),
+
+    INDEX idx_notifications_created
+        (user_id, created_at)
+);
+
+
+-- -----------------------------------
+-- Monthly Savings Goals
+-- -----------------------------------
+
+CREATE TABLE monthly_savings (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+
+    saving_month TINYINT UNSIGNED NOT NULL,
+    saving_year SMALLINT UNSIGNED NOT NULL,
+
+    savings_goal DECIMAL(15,2) NOT NULL,
+    actual_saving DECIMAL(15,2) NULL DEFAULT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_monthly_savings_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT chk_savings_goal
+        CHECK (savings_goal > 0),
+
+    CONSTRAINT chk_actual_saving
+        CHECK (actual_saving >= 0),
+
+    CONSTRAINT chk_saving_month
+        CHECK (saving_month BETWEEN 1 AND 12),
+
+    CONSTRAINT chk_saving_year
+        CHECK (saving_year BETWEEN 2000 AND 2100),
+
+    UNIQUE KEY unique_user_saving_month (
+        user_id,
+        saving_month,
+        saving_year
+    )
 );

@@ -445,7 +445,7 @@ export default function Transactions() {
         <h2 className="text-3xl font-bold">Transactions</h2>
         <div className="flex gap-4">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
             <input
               type="text"
@@ -732,7 +732,7 @@ export default function Transactions() {
              amount={formData.amount}
              budgetsUsage={budgetsUsage}
           />
-          <button type="submit" disabled={formLoading} className="w-full bg-black text-white rounded-full py-4 font-semibold hover:bg-gray-900 disabled:opacity-70 transition-colors mt-4">
+          <button type="submit" disabled={formLoading} className="w-full bg-btn-primary text-btn-text rounded-full py-4 font-semibold hover:bg-btn-primary-hover disabled:opacity-70 transition-colors mt-4">
             {formLoading ? 'Saving...' : 'Save Transaction'}
           </button>
         </form>

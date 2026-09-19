@@ -56,3 +56,17 @@ module.exports = {
     createTransactionValidation,
     updateTransactionValidation
 };
+const transactionQueryValidation = Joi.object({
+    page: Joi.number().integer().min(1).optional(),
+    limit: Joi.number().integer().min(1).max(100).optional(),
+    sortBy: Joi.string().valid("date", "amount", "createdAt").optional(),
+    order: Joi.string().valid("ASC", "DESC", "asc", "desc").optional(),
+    startDate: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    endDate: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    categoryId: Joi.number().integer().positive().optional(),
+    paymentModeId: Joi.number().integer().positive().optional(),
+    type: Joi.string().valid("income", "expense").optional(),
+    search: Joi.string().trim().max(100).optional().allow("")
+});
+
+module.exports.transactionQueryValidation = transactionQueryValidation;

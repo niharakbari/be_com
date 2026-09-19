@@ -1,3 +1,4 @@
+const { idParamValidation } = require("../validations/commonValidation");
 const express = require("express");
 
 const budgetController = require(
@@ -54,6 +55,7 @@ router.post(
 router.get(
     "/:id",
     protect,
+    validate(idParamValidation, "params"),
     budgetController.getBudgetById
 );
 
@@ -61,7 +63,8 @@ router.get(
 router.patch(
     "/:id",
     protect,
-    validate(updateBudgetValidation),
+    validate(idParamValidation, "params"),
+    validate(updateBudgetValidation, "body"),
     budgetController.updateBudget
 );
 
@@ -69,6 +72,7 @@ router.patch(
 router.delete(
     "/:id",
     protect,
+    validate(idParamValidation, "params"),
     budgetController.deleteBudget
 );
 

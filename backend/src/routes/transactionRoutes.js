@@ -11,10 +11,12 @@ const { protect } = require(
 const { validate } = require(
     "../middlewares/validationMiddleware"
 );
+const { idParamValidation } = require("../validations/commonValidation");
 
 const {
     createTransactionValidation,
-    updateTransactionValidation
+    updateTransactionValidation,
+    transactionQueryValidation
 } = require(
     "../validations/transactionValidation"
 );
@@ -33,18 +35,21 @@ router.post(
 router.get(
     "/",
     protect,
+    validate(transactionQueryValidation, "query"),
     transactionController.getTransactions
 );
 
 router.get(
     "/export",
     protect,
+    validate(transactionQueryValidation, "query"),
     transactionController.exportTransactions
 );
 
 router.get(
     "/:id",
     protect,
+    validate(idParamValidation, "params"),
     transactionController.getTransactionById
 );
 
@@ -52,7 +57,8 @@ router.get(
 router.patch(
     "/:id",
     protect,
-    validate(updateTransactionValidation),
+    validate(idParamValidation, "params"),
+    validate(updateTransactionValidation, "body"),
     transactionController.updateTransaction
 );
 
@@ -60,6 +66,7 @@ router.patch(
 router.delete(
     "/:id",
     protect,
+    validate(idParamValidation, "params"),
     transactionController.deleteTransaction
 );
 

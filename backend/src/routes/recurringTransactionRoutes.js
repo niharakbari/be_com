@@ -1,3 +1,4 @@
+const { idParamValidation } = require("../validations/commonValidation");
 const express = require("express");
 
 const router = express.Router();
@@ -35,6 +36,7 @@ router.get(
 router.get(
     "/:id",
     protect,
+    validate(idParamValidation, "params"),
     recurringTransactionController.getRecurringTransactionById
 );
 
@@ -43,7 +45,8 @@ router.get(
 router.patch(
     "/:id",
     protect,
-    validate(updateRecurringTransactionValidation),
+    validate(idParamValidation, "params"),
+    validate(updateRecurringTransactionValidation, "body"),
     recurringTransactionController.updateRecurringTransaction
 );
 
@@ -52,6 +55,7 @@ router.patch(
 router.delete(
     "/:id",
     protect,
+    validate(idParamValidation, "params"),
     recurringTransactionController.deleteRecurringTransaction
 );
 
@@ -60,6 +64,7 @@ router.delete(
 router.patch(
     "/:id/activate",
     protect,
+    validate(idParamValidation, "params"),
     recurringTransactionController.activate
 );
 
@@ -68,6 +73,7 @@ router.patch(
 router.patch(
     "/:id/deactivate",
     protect,
+    validate(idParamValidation, "params"),
     recurringTransactionController.deactivate
 );
 

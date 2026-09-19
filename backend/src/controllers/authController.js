@@ -109,7 +109,7 @@ const refreshToken = async (req, res, next) => {
 
         const result = await authService.refreshAccessToken(
             token
-        );
+        );  
 
 
         res.cookie(

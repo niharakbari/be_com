@@ -61,7 +61,7 @@ export default function Profile() {
       
       <div className="bg-surface rounded-[32px] p-8 shadow-[0_2px_10px_rgb(0,0,0,0.02)] mb-8 border border-border-main text-text-main">
         <div className="flex items-center gap-6 mb-8 pb-8 border-b border-border-main">
-          <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden">
+          <div className="w-24 h-24 rounded-full bg-border-main overflow-hidden">
             <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${user?.user_name}`} alt="Profile" className="w-full h-full object-cover" />
           </div>
           <div>
