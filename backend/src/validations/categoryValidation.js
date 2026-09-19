@@ -31,3 +31,8 @@ module.exports = {
     createCategoryValidation,
     updateCategoryValidation
 };
+const reassignCategoryValidation = Joi.object({
+    newCategoryId: Joi.number().integer().positive().required()
+});
+
+module.exports.reassignCategoryValidation = reassignCategoryValidation;

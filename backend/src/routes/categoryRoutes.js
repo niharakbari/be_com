@@ -1,3 +1,4 @@
+const { idParamValidation } = require("../validations/commonValidation");
 const express = require("express");
 
 const categoryController = require("../controllers/categoryController");
@@ -8,7 +9,8 @@ const { protect } = require(
 
 const {
     createCategoryValidation,
-    updateCategoryValidation
+    updateCategoryValidation,
+    reassignCategoryValidation
 } = require(
     "../validations/categoryValidation"
 );
@@ -35,10 +37,20 @@ router.get(
 );
 
 
+router.post(
+    "/:id/reassign",
+    protect,
+    validate(idParamValidation, "params"),
+    validate(reassignCategoryValidation, "body"),
+    categoryController.reassignAndDeleteCategory
+);
+
+
 router.patch(
     "/:id",
     protect,
-    validate(updateCategoryValidation),
+    validate(idParamValidation, "params"),
+    validate(updateCategoryValidation, "body"),
     categoryController.updateCategory
 );
 
@@ -46,8 +58,16 @@ router.patch(
 router.delete(
     "/:id",
     protect,
+    validate(idParamValidation, "params"),
     categoryController.deleteCategory
 );
 
+
+router.get(
+    "/:id/usage",
+    protect,
+    validate(idParamValidation, "params"),
+    categoryController.getCategoryUsage
+);
 
 module.exports = router;

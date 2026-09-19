@@ -98,9 +98,47 @@ const deleteCategory = async (req, res, next) => {
 };
 
 
+
+const reassignAndDeleteCategory = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const { id: oldCategoryId } = req.params;
+        const { newCategoryId } = req.body;
+
+        await categoryService.reassignAndDeleteCategory(
+            userId,
+            oldCategoryId,
+            newCategoryId
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Category reassigned and deleted successfully"
+        });
+    } catch (err) {
+        logger.error(err.message);
+        next(err);
+    }
+};
+
+
+const getCategoryUsage = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const { id } = req.params;
+        const usage = await categoryService.getCategoryUsage(id, userId);
+        return res.status(200).json({ success: true, data: usage });
+    } catch (err) {
+        logger.error(err.message);
+        next(err);
+    }
+};
+
 module.exports = {
+    getCategoryUsage,
     createCategory,
     getCategories,
     updateCategory,
-    deleteCategory
+    deleteCategory,
+    reassignAndDeleteCategory
 };
